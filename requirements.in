@@ -4,4 +4,5 @@ mypy
 pip-tools
 pre-commit
 pytest
+pytest-testmon
 pytest-watch

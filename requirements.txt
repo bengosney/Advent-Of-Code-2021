@@ -22,6 +22,8 @@ colorama==0.4.4
     # via
     #   icecream
     #   pytest-watch
+coverage==6.2
+    # via pytest-testmon
 distlib==0.3.3
     # via virtualenv
 docopt==0.6.2
@@ -69,7 +71,10 @@ pyparsing==3.0.6
 pytest==6.2.5
     # via
     #   -r requirements.in
+    #   pytest-testmon
     #   pytest-watch
+pytest-testmon==1.2.2
+    # via -r requirements.in
 pytest-watch==4.2.0
     # via -r requirements.in
 pyyaml==6.0
