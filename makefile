@@ -4,8 +4,9 @@
 HOOKS=$(.git/hooks/pre-commit)
 
 ALLDAYS=$(wildcard src/day_*.py)
-DAY=src/day_$(shell date +%d).py
-INPUT=inputs/day_$(shell date +%d).txt
+CURRENT_PY=src/day_$(shell date +%d).py
+CURRENT_INPUT=inputs/day_$(shell date +%d).txt
+COOKIEFILE=cookies.txt
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -21,10 +22,15 @@ requirements.txt: requirements.in
 	pip-sync requirements.txt
 	@touch $@ $^
 
-$(INPUT):
-	touch $@
+$(COOKIEFILE):
+	@echo "$@ not found, add session cookie to $@"
+	@false
 
-$(DAY):
+inputs/day_%.txt: $(COOKIEFILE)
+	echo $@
+	curl --cookie "$(shell cat $^)" -s -L -o $@ https://adventofcode.com/$(shell date +%Y)/day/$(shell echo "$@" | egrep -o "[0-9]+" | sed 's/^0*//')/input
+
+src/day_%.py:
 	cp template.py $@
 
 $(HOOKS):
@@ -47,5 +53,5 @@ clean:
 test: $(ALLDAYS)
 	pytest $(ALLDAYS)
 
-go: init $(DAY) $(INPUT) ## Setup current day and start runing test monitor
+go: init $(CURRENT_PY) $(CURRENT_INPUT) ## Setup current day and start runing test monitor
 	ptw --runner "pytest --testmon" src/*.py
