@@ -50,8 +50,8 @@ clean:
 	rm -rf .pytest_cache
 	rm -f .testmondata
 
-test: $(ALLDAYS)
-	pytest $(ALLDAYS)
+test: src/*.py
+	pytest $^
 
 go: init $(CURRENT_PY) $(CURRENT_INPUT) ## Setup current day and start runing test monitor
 	ptw --runner "pytest --testmon" src/*.py
