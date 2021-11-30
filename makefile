@@ -1,8 +1,7 @@
-.PHONY := install, help, init, pre-init, postgres, clean, test
+.PHONY := help, clean, test, go
 .DEFAULT_GOAL := go
 
 HOOKS=$(.git/hooks/pre-commit)
-PGCONTAINER:=stl-postgres
 
 ALLDAYS=$(wildcard src/day_*.py)
 DAY=src/day_$(shell date +%d).py
@@ -16,9 +15,11 @@ requirements.txt: requirements.in
 	@pip-compile -q $^
 
 .direnv: .envrc requirements.txt
-	@git pull
-	@pip-sync requirements.txt
-	@touch $@
+	pip install --upgrade pip
+	pip install wheel pip-tools
+	git pull
+	pip-sync requirements.txt
+	@touch $@ $^
 
 $(INPUT):
 	touch $@
@@ -30,26 +31,21 @@ $(HOOKS):
 	pre-commit install
 
 .envrc:
+	@echo "Setting up .envrc"
 	@echo "layout python python3.10" > $@
-	@touch $@
-	@exit 0
+	@touch -d '+1 minute' $@
+	@false
 
-pre-init:
-	pip install --upgrade pip
-	pip install wheel pip-tools
-
-init: .envrc pre-init .direnv $(HOOKS) ## Initalise a enviroment
-	git pull
-	@echo "Read to dev"
+init: .direnv $(HOOKS) ## Initalise a enviroment
 
 clean:
 	find . -name '*.pyc' -delete
 	find . -type d -name '__pycache__' -delete
 	rm -rf .pytest_cache
-	$(init)
+	rm -f .testmondata
 
 test: $(ALLDAYS)
 	pytest $(ALLDAYS)
 
-go: init $(DAY) $(INPUT)
+go: init $(DAY) $(INPUT) ## Setup current day and start runing test monitor
 	ptw --runner "pytest --testmon" src/*.py
