@@ -43,6 +43,7 @@ $(HOOKS):
 	@false
 
 init: .direnv $(HOOKS) ## Initalise a enviroment
+	git pull
 
 clean:
 	find . -name '*.pyc' -delete
