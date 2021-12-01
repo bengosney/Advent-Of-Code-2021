@@ -14,13 +14,13 @@ def part_2(input):
 
 
 def test_part_1():
-    example_input = ""
+    example_input = """"""
     assert part_1(example_input) == ""
 
 
 def test_part_2():
-    example_input = ""
-    assert part_1(example_input) == ""
+    example_input = """"""
+    assert part_2(example_input) == ""
 
 
 # -- Main
