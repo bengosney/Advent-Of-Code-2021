@@ -1,3 +1,6 @@
+# Standard Library
+from itertools import pairwise
+
 # First Party
 from utils import input_to_ints, ints_to_input, read_input
 
@@ -5,7 +8,7 @@ from utils import input_to_ints, ints_to_input, read_input
 def part_1(input: str) -> int:
     depths = input_to_ints(input)
 
-    return sum(int(depths[i] > depths[i - 1]) for i in range(1, len(depths)))
+    return sum(b > a for a, b in pairwise(depths))
 
 
 def part_2(input: str) -> int:
