@@ -53,6 +53,7 @@ clean:
 
 test: src/*.py
 	pytest $^
+	mypy $^
 
 go: init $(CURRENT_PY) $(CURRENT_INPUT) ## Setup current day and start runing test monitor
 	ptw --runner "pytest --testmon" src/*.py
