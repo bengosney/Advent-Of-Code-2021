@@ -1,37 +1,25 @@
 # First Party
-from utils import read_input
-from icecream import ic
+from utils import input_to_ints, ints_to_input, read_input
 
-def part_1(input):
-    previous = None
-    count = 0
-    for line in input.splitlines():
-        line = int(line)
-        if previous is None:
-            previous = line
-            continue
-        if line > previous:
-            count += 1
-        previous = line
-    return count
 
-def part_2(input):
-    splitinput = input.splitlines()
-    newinput = [
-        str(
-            int(splitinput[i])
-            + int(splitinput[i + 1])
-            + int(splitinput[i + 2])
-        )
-        for i in range(len(splitinput) - 2)
-    ]
-    return part_1("\n".join(newinput))
+def part_1(input: str) -> int:
+    depths = input_to_ints(input)
+
+    return sum(int(depths[i] > depths[i - 1]) for i in range(1, len(depths)))
+
+
+def part_2(input: str) -> int:
+    depths = input_to_ints(input)
+    depthWindows = ints_to_input(sum(depths[i : i + 3]) for i in range(len(depths) - 2))
+
+    return part_1(depthWindows)
+
 
 # -- Tests
 
 
-def test_part_1():
-    example_input = """199
+def get_example_input() -> str:
+    return """199
 200
 208
 210
@@ -41,30 +29,25 @@ def test_part_1():
 269
 260
 263"""
-    assert part_1(example_input) == 7
+
+
+def test_part_1():
+    assert part_1(get_example_input()) == 7
 
 
 def test_part_2():
-    example_input = """199
-200
-208
-210
-200
-207
-240
-269
-260
-263"""
-    assert part_2(example_input) == 5
+    assert part_2(get_example_input()) == 5
 
 
 def test_part_1_real():
     input = read_input(__file__)
     assert part_1(input) == 1688
-    
+
+
 def test_part_2_real():
     input = read_input(__file__)
     assert part_2(input) == 1728
+
 
 # -- Main
 
