@@ -9,15 +9,14 @@ def part_1(input: str) -> int:
     depth = 0
 
     for instruction in instructions:
-        cmd, amt = instruction.split(" ")
-        match cmd:
-            case "forward":
+        match instruction.split(" "):
+            case ["forward", amt]:
                 position += int(amt)
-            case "backward":
+            case ["backward", amt]:
                 position -= int(amt)
-            case "up":
+            case ["up", amt]:
                 depth -= int(amt)
-            case "down":
+            case ["down", amt]:
                 depth += int(amt)
 
     return position * depth
@@ -31,17 +30,16 @@ def part_2(input: str) -> int:
     aim = 0
 
     for instruction in instructions:
-        cmd, amt = instruction.split(" ")
-        match cmd:
-            case "forward":
+        match instruction.split(" "):
+            case ["forward", amt]:
                 position += int(amt)
                 depth -= int(amt) * aim
-            case "backward":
+            case ["backward", amt]:
                 position -= int(amt)
                 depth += int(amt) * aim
-            case "up":
+            case ["up", amt]:
                 aim += int(amt)
-            case "down":
+            case ["down", amt]:
                 aim -= int(amt)
 
     return position * depth
