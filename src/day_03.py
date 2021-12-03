@@ -1,31 +1,41 @@
 # Standard Library
-from collections import Counter
+from collections import Counter, defaultdict
 
 # First Party
 from utils import read_input
 
-# Third Party
-from icecream import ic
-
 
 def gamma(input: list[str]) -> int:
-    result = ""
-    # bits = defaultdict(lambda: Counter())
+    bits = defaultdict(lambda: [])
     for row in input:
-        bits = [row[p] for p in range(len(row))]
+        for p in range(len(row)):
+            bits[p].append(row[p])
 
-        bit, _ = Counter(bits).most_common()[0]
+    result = ""
+    for p in bits:
+        bit, _ = Counter(bits[p]).most_common()[0]
         result += bit
-    ic(result)
+
     return int(result, 2)
 
 
 def epsilon(input: list[str]) -> int:
-    pass
+    bits = defaultdict(lambda: [])
+    for row in input:
+        for p in range(len(row)):
+            bits[p].append(row[p])
+
+    result = ""
+    for p in bits:
+        bit, _ = Counter(bits[p]).most_common()[-1]
+        result += bit
+
+    return int(result, 2)
 
 
 def part_1(input: str) -> int:
-    pass
+    lines = input.splitlines()
+    return gamma(lines) * epsilon(lines)
 
 
 def part_2(input: str) -> int:
@@ -67,10 +77,11 @@ def test_part_2():
     assert part_2(get_example_input()) is not None
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) == None
-#
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) == 3009600
+
+
 # def test_part_2_real():
 #     input = read_input(__file__)
 #     assert part_2(input) == None
