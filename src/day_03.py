@@ -1,85 +1,56 @@
 # Standard Library
-from collections import Counter, defaultdict
+from collections import Counter
 
 # First Party
 from utils import read_input
 
 
-def gamma(input: list[str]) -> int:
-    bits = defaultdict(lambda: [])
-    for row in input:
-        for p in range(len(row)):
-            bits[p].append(row[p])
+def gamma_epsilon(input: list[list[str]]) -> tuple[int, int]:
+    bits = zip(*input[::-1])
 
-    result = ""
-    for p in bits:
-        bit, _ = Counter(bits[p]).most_common()[0]
-        result += bit
+    gamma = ""
+    epsilon = ""
+    for b in bits:
+        gamma += Counter(b).most_common()[0][0]
+        epsilon += Counter(b).most_common()[-1][0]
 
-    return int(result, 2)
-
-
-def epsilon(input: list[str]) -> int:
-    bits = defaultdict(lambda: [])
-    for row in input:
-        for p in range(len(row)):
-            bits[p].append(row[p])
-
-    result = ""
-    for p in bits:
-        bit, _ = Counter(bits[p]).most_common()[-1]
-        result += bit
-
-    return int(result, 2)
-
-
-def mostCommon(input: list[str], position: int) -> str:
-    bits = ["1"]
-    for row in input:
-        bits.append(row[position])
-
-    bits.append("0")
-
-    return Counter(bits).most_common()[0][0]
-
-
-def leastCommon(input: list[str], position: int) -> str:
-    bits = ["1"]
-    for row in input:
-        bits.append(row[position])
-
-    bits.append("0")
-
-    return Counter(bits).most_common()[-1][0]
-
-
-def o2(input: list[str], p=0) -> int:
-    left: list[str] = []
-
-    c = mostCommon(input, p)
-    left = [row for row in input if row[p] == c]
-
-    if len(left) == 1:
-        return int(left[0], 2)
-    else:
-        return o2(left, p + 1)
-
-
-def co2(input: list[str], p=0) -> int:
-    left: list[str] = []
-
-    c = leastCommon(input, p)
-    left = [row for row in input if row[p] == c]
-
-    if len(left) == 1:
-        return int(left[0], 2)
-    else:
-        return co2(left, p + 1)
+    return (int(gamma, 2), int(epsilon, 2))
 
 
 def part_1(input: str) -> int:
-    lines = input.splitlines()
-    return gamma(lines) * epsilon(lines)
+    gamma, epsilon = gamma_epsilon([list(line) for line in input.splitlines()])
+    return gamma * epsilon
+
+
+def commonality(input: list[str], position: int) -> tuple[str, str]:
+    bits = ["1", "0"]  # Ensure 1 is returned in the event of a tie
+    for row in input:
+        bits.append(row[position])
+
+    most_common, _ = Counter(bits).most_common()[0]
+    least_common, _ = Counter(bits).most_common()[-1]
+
+    return (most_common, least_common)
+
+
+def o2_co2(input: list[str], type: int, position: int = 0) -> int:
+    left: list[str] = []
+
+    c = commonality(input, position)[type]
+    left = [row for row in input if row[position] == c]
+
+    if len(left) == 1:
+        return int(left[0], 2)
+    else:
+        return o2_co2(left, type, position + 1)
+
+
+def o2(input: list[str]) -> int:
+    return o2_co2(input, 0)
+
+
+def co2(input: list[str]) -> int:
+    return o2_co2(input, 1)
 
 
 def part_2(input: str) -> int:
@@ -111,11 +82,13 @@ def test_part_1():
 
 
 def test_gamma():
-    assert gamma(get_example_input().splitlines()) == 22
+    gamma, _ = gamma_epsilon([list(line) for line in get_example_input().splitlines()])
+    assert gamma == 22
 
 
 def test_epsilon():
-    assert epsilon(get_example_input().splitlines()) == 9
+    _, epsilon = gamma_epsilon([list(line) for line in get_example_input().splitlines()])
+    assert epsilon == 9
 
 
 def test_o2():
