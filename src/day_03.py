@@ -14,7 +14,7 @@ def gamma_epsilon(input: list[list[str]]) -> tuple[int, int]:
         gamma += Counter(b).most_common()[0][0]
         epsilon += Counter(b).most_common()[-1][0]
 
-    return (int(gamma, 2), int(epsilon, 2))
+    return int(gamma, 2), int(epsilon, 2)
 
 
 def part_1(input: str) -> int:
@@ -23,14 +23,10 @@ def part_1(input: str) -> int:
 
 
 def commonality(input: list[str], position: int) -> tuple[str, str]:
-    bits = ["1", "0"]  # Ensure 1 is returned in the event of a tie
-    for row in input:
-        bits.append(row[position])
+    bits = ["1", "0"] + [row[position] for row in input]
+    most_common = Counter(bits).most_common()
 
-    most_common, _ = Counter(bits).most_common()[0]
-    least_common, _ = Counter(bits).most_common()[-1]
-
-    return (most_common, least_common)
+    return most_common[0][0], most_common[-1][0]
 
 
 def o2_co2(input: list[str], type: int, position: int = 0) -> int:
