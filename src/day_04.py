@@ -10,7 +10,6 @@ class Board:
         self.grid: dict[tuple[int, int], bool] = defaultdict(lambda: False)
         self.mapping: dict[int, tuple[int, int]] = {}
         self.unmarked: list[int] = []
-        self.marked: list[int] = []
         self.size: tuple[int, int] = (0, 0)
 
         for y, row in enumerate(input.replace("  ", " ").strip().split("\n")):
@@ -19,10 +18,18 @@ class Board:
                 self.unmarked.append(int(cell))
                 self.size = (max(self.size[0], x + 1), max(self.size[1], x + 1))
 
+    @staticmethod
+    def preparGame(input: str) -> tuple[list[int], list["Board"]]:
+        split = input.split("\n\n")
+        draw = list(map(int, split[0].split(",")))
+
+        boards = [Board(b.replace("  ", " ")) for b in split[1:]]
+
+        return draw, boards
+
     def set(self, num: int) -> None:
         if num in self.mapping:
             self.grid[self.mapping[num]] = True
-            self.marked.append(num)
             self.unmarked.remove(num)
 
     def bingoRow(self) -> bool:
@@ -41,34 +48,31 @@ class Board:
 
 
 def part_1(input: str) -> int:
-    split = input.split("\n\n")
-    draw = split[0].split(",")
-
-    boards = [Board(b.replace("  ", " ")) for b in split[1:]]
+    draw, boards = Board.preparGame(input)
 
     for d in draw:
         for b in boards:
-            b.set(int(d))
+            b.set(d)
             if b.bingo():
-                return b.score(int(d))
+                return b.score(d)
 
     raise Exception("No bingo")
 
 
 def part_2(input: str) -> int:
-    split = input.split("\n\n")
-    draw = split[0].split(",")
-
-    boards = [Board(b.replace("  ", " ")) for b in split[1:]]
+    draw, boards = Board.preparGame(input)
 
     for d in draw:
+        won = []
         for k, b in enumerate(boards):
-            b.set(int(d))
+            b.set(d)
+            if b.bingo():
+                won.append(k)
 
         for k, b in enumerate(boards):
             if b.bingo():
                 if len(boards) == 1:
-                    return b.score(int(d))
+                    return b.score(d)
                 del boards[k]
 
     raise Exception("No bingo")
