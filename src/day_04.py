@@ -4,66 +4,40 @@ from collections import defaultdict
 # First Party
 from utils import read_input
 
-# Third Party
-from icecream import ic
-from rich import print
-
 
 class Board:
     def __init__(self, input: str) -> None:
-        self.grid = defaultdict(lambda: False)
-        self.mapping = {}
-        self.revmapping = {}
-        self.unmarked = []
-        self.marked = []
-        self.width = 0
-        self.height = 0
-        self.lastSet = None
-        for y, row in enumerate(input.replace("  ", " ").split("\n")):
-            for x, cell in enumerate(row.strip(" ").split(" ")):
-                if cell != "":
-                    self.mapping[int(cell)] = (x, y)
-                    self.revmapping[(x, y)] = int(cell)
-                    self.unmarked.append(int(cell))
-                    self.width = 5  # max(self.width, x)
-                    self.height = 5  # max(self.height+1, y)
+        self.grid: dict[tuple[int, int], bool] = defaultdict(lambda: False)
+        self.mapping: dict[int, tuple[int, int]] = {}
+        self.unmarked: list[int] = []
+        self.marked: list[int] = []
+        self.size: tuple[int, int] = (0, 0)
 
-    def set(self, num: int) -> bool:
+        for y, row in enumerate(input.replace("  ", " ").strip().split("\n")):
+            for x, cell in enumerate(row.strip(" ").split(" ")):
+                self.mapping[int(cell)] = (x, y)
+                self.unmarked.append(int(cell))
+                self.size = (max(self.size[0], x + 1), max(self.size[1], x + 1))
+
+    def set(self, num: int) -> None:
         if num in self.mapping:
             self.grid[self.mapping[num]] = True
             self.marked.append(num)
             self.unmarked.remove(num)
-            self.lastSet = num
-
-            return True
-
-        return False
 
     def bingoRow(self) -> bool:
-        return any(all(self.grid[(x, y)] for x in range(self.width)) for y in range(self.height))
+        width, height = self.size
+        return any(all(self.grid[(x, y)] for x in range(width)) for y in range(height))
 
     def bingoCol(self) -> bool:
-        return any(all(self.grid[(x, y)] for y in range(self.height)) for x in range(self.width))
+        width, height = self.size
+        return any(all(self.grid[(x, y)] for y in range(height)) for x in range(width))
 
     def bingo(self) -> bool:
         return self.bingoRow() or self.bingoCol()
 
-    def score(self) -> int:
-        if self.lastSet is None:
-            raise Exception("No last set")
-        ic(self.unmarked)
-        return self.lastSet * sum(self.unmarked)
-
-    def __str__(self) -> str:
-        rep = f"Draw: {self.lastSet}\n"
-        for y in range(self.height):
-            for x in range(self.width):
-                rep += f"{self.revmapping.get((x,y), '')}".rjust(3)
-                rep += "|" if self.grid[(x, y)] else "."
-
-            rep += "\n"
-
-        return rep
+    def score(self, draw: int) -> int:
+        return draw * sum(self.unmarked)
 
 
 def part_1(input: str) -> int:
@@ -76,9 +50,9 @@ def part_1(input: str) -> int:
         for b in boards:
             b.set(int(d))
             if b.bingo():
-                print(b)
-                return b.score()
-    return 0
+                return b.score(int(d))
+
+    raise Exception("No bingo")
 
 
 def part_2(input: str) -> int:
@@ -94,12 +68,10 @@ def part_2(input: str) -> int:
         for k, b in enumerate(boards):
             if b.bingo():
                 if len(boards) == 1:
-                    print(",".join(draw))
-                    print(b)
-                    return b.score()
+                    return b.score(int(d))
                 del boards[k]
 
-    return 0
+    raise Exception("No bingo")
 
 
 # -- Tests
