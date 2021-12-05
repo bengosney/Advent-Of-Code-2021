@@ -20,7 +20,8 @@ def timeit(day: str, iterations: int = 1, progress: Callable = lambda: None) -> 
     module = import_module(day)
     input = read_input(day)
 
-    times = {}
+    times: dict[int, list[float]] = {}
+
     for i in [1, 2]:
         times[i] = []
         for _ in range(iterations):
