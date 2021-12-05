@@ -1,4 +1,4 @@
-.PHONY := help, clean, test, go
+.PHONY: help clean test go all
 .DEFAULT_GOAL := go
 
 HOOKS=$(.git/hooks/pre-commit)
