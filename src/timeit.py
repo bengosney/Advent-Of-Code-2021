@@ -1,6 +1,7 @@
 # Standard Library
 from importlib import import_module
 from pathlib import Path
+from statistics import mean
 from time import time
 from typing import Callable
 
@@ -15,31 +16,20 @@ from rich.progress import Progress
 from rich.table import Table
 
 
-def avg(lst: list[int | float]) -> float:
-    return sum(lst) / len(lst)
-
-
-def timeit(day: str, iterations: int = 1, progress: Callable | None = None) -> tuple[float, float]:
+def timeit(day: str, iterations: int = 1, progress: Callable = lambda: None) -> tuple[float, float]:
     module = import_module(day)
     input = read_input(day)
 
-    part_1_times: list[float] = []
-    for _ in range(iterations):
-        start = time()
-        module.part_1(input)  # type: ignore
-        part_1_times.append(time() - start)
-        if progress is not None:
+    times = {}
+    for i in [1, 2]:
+        times[i] = []
+        for _ in range(iterations):
+            start = time()
+            getattr(module, f"part_{i}")(input)
+            times[i].append(time() - start)
             progress()
 
-    part_2_times: list[float] = []
-    for _ in range(iterations):
-        start = time()
-        module.part_2(input)  # type: ignore
-        part_2_times.append(time() - start)
-        if progress is not None:
-            progress()
-
-    return avg(part_1_times), avg(part_2_times)
+    return mean(times[1]), mean(times[2])
 
 
 @click.command()
@@ -54,14 +44,13 @@ def time_everything(iterations: int = 10) -> None:
     days = list(Path("./src").glob("day_*.py"))
 
     with Progress(transient=True) as progress:
-        p = progress.add_task("Running code", total=(len(days) * 2) * iterations)
+        task = progress.add_task("Running code", total=(len(days) * 2) * iterations)
         for path in sorted(days):
             day = path.name.replace(".py", "")
-            p1, p2 = timeit(day, iterations, lambda: progress.update(p, advance=1))
+            p1, p2 = timeit(day, iterations, lambda: progress.update(task, advance=1))
 
             _, d = day.split("_")
             table.add_row(f"{int(d)}", f"{p1:.3f}s", f"{p2:.3f}s")
-            progress.update(p, advance=1)
 
     with Console() as console:
         console.print(Panel(table, expand=False))
