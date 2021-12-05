@@ -19,20 +19,24 @@ def get_example_input() -> str:
 
 
 def test_part_1():
-    assert part_1(get_example_input()) is not None
+    input = get_example_input()
+    assert part_1(input) is not None
 
 
-def test_part_2():
-    assert part_2(get_example_input()) is not None
+# def test_part_2():
+#     input = get_example_input()
+#     assert part_2(input) is not None
 
 
 # def test_part_1_real():
 #     input = read_input(__file__)
-#     assert part_1(input) == None
-#
+#     assert part_1(input) is not None
+
+
 # def test_part_2_real():
 #     input = read_input(__file__)
-#     assert part_2(input) == None
+#     assert part_2(input) is not None
+
 
 # -- Main
 
