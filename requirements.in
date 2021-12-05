@@ -6,3 +6,4 @@ pre-commit
 pytest
 pytest-testmon
 pytest-watch
+rich
