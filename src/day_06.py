@@ -4,8 +4,12 @@ from collections import defaultdict
 # First Party
 from utils import read_input
 
+# Types
 
-def process_fish(fish: dict[int, int], day: int) -> dict[int, int]:
+Fish = dict[int, int]
+
+
+def process_fish(fish: Fish) -> Fish:
     newFish = defaultdict(lambda: 0)
 
     for i in range(9):
@@ -20,26 +24,26 @@ def process_fish(fish: dict[int, int], day: int) -> dict[int, int]:
 
 def part_1(input: str) -> int:
     fishInput = map(int, input.split(","))
-    fish = defaultdict(lambda: 0)
+    fish: Fish = defaultdict(lambda: 0)
 
     for f in fishInput:
         fish[f] += 1
 
-    for d in range(80):
-        fish = process_fish(fish, d + 1)
+    for _ in range(80):
+        fish = process_fish(fish)
 
     return sum(list(fish.values()))
 
 
 def part_2(input: str) -> int:
     fishInput = map(int, input.split(","))
-    fish = defaultdict(lambda: 0)
+    fish: Fish = defaultdict(lambda: 0)
 
     for f in fishInput:
         fish[f] += 1
 
-    for d in range(256):
-        fish = process_fish(fish, d + 1)
+    for _ in range(256):
+        fish = process_fish(fish)
 
     return sum(list(fish.values()))
 
