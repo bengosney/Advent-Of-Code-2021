@@ -32,21 +32,22 @@ def timeit(day: str, iterations: int = 1, progress: Callable = lambda: None) -> 
     return mean(times[1]), mean(times[2])
 
 
-@click.command()
+@click.command(help="Time the solutions\n\nExample:\n\n$ timeit day_01\n\nLeave blank for all days")
 @click.option("--iterations", "-i", default=10, help="Number of times to run each part")
-def time_everything(iterations: int = 10) -> None:
-    table = Table(title=f"AOC 2021 - Timings\n({iterations} iterations)")
+@click.argument("days", nargs=-1)
+def time_everything(iterations: int = 10, days: list[str] = []) -> None:
+    table = Table(title=f"AOC 2021 - Timings\n({iterations:,} iterations)")
 
     table.add_column("Day", justify="center", style="bold")
     table.add_column("Part 1", justify="right")
     table.add_column("Part 2", justify="right")
 
-    days = list(Path("./src").glob("day_*.py"))
+    if len(days) == 0:
+        days = [p.name.replace(".py", "") for p in list(Path("./src").glob("day_*.py"))]
 
     with Progress(transient=True) as progress:
         task = progress.add_task("Running code", total=(len(days) * 2) * iterations)
-        for path in sorted(days):
-            day = path.name.replace(".py", "")
+        for day in sorted(days):
             p1, p2 = timeit(day, iterations, lambda: progress.update(task, advance=1))
 
             _, d = day.split("_")
