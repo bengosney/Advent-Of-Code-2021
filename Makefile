@@ -56,5 +56,6 @@ test: src/*.py
 	echo "$^" | sed 's/src\/day_02\.py//g' | xargs mypy
 
 go: init $(CURRENT_PY) $(CURRENT_INPUT) ## Setup current day and start runing test monitor
+	code .
 	code src/day_$(shell date +%d).py
 	ptw --runner "pytest --testmon" src/*.py
