@@ -11,7 +11,6 @@ from utils import read_input
 # Third Party
 import click
 from rich.console import Console
-from rich.panel import Panel
 from rich.progress import Progress
 from rich.table import Table
 
@@ -51,10 +50,10 @@ def time_everything(iterations: int = 10) -> None:
             p1, p2 = timeit(day, iterations, lambda: progress.update(task, advance=1))
 
             _, d = day.split("_")
-            table.add_row(f"{int(d)}", f"{p1:.3f}s", f"{p2:.3f}s")
+            table.add_row(f"{int(d)}", f"{p1:.4f}s", f"{p2:.4f}s")
 
     with Console() as console:
-        console.print(Panel(table, expand=False))
+        console.print(table)
 
 
 if __name__ == "__main__":
