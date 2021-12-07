@@ -1,6 +1,7 @@
 # Standard Library
+import multiprocessing as mp
 import sys
-from functools import lru_cache
+from functools import lru_cache, partial
 
 # First Party
 from utils import read_input
@@ -20,7 +21,7 @@ def part_1(input: str) -> int:
     return min_fuel
 
 
-def move_crabs_to_exp(crabs: list[int], position: int) -> int:
+def move_crabs_to_exp(position: int, crabs: list[int]) -> int:
     return sum(move_crab_exp(abs(position - crab)) for crab in crabs)
 
 
@@ -30,13 +31,13 @@ def move_crab_exp(distance: int) -> int:
 
 
 def part_2(input: str) -> int:
-    crabs = list(map(int, input.split(",")))
+    crabs: list[int] = list(map(int, input.split(",")))
 
-    min_fuel = sys.maxsize
-    for position in range(len(crabs)):
-        min_fuel = min(min_fuel, move_crabs_to_exp(crabs, position))
+    process_crabs = partial(move_crabs_to_exp, crabs=crabs)
+    pool = mp.Pool(mp.cpu_count())
+    fuel = pool.map(process_crabs, range(len(crabs)))
 
-    return min_fuel
+    return min(fuel)
 
 
 # -- Tests
