@@ -15,20 +15,18 @@ def part_1(input: str) -> int:
     return min_fuel
 
 
-def fib(n):
-    if n == 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return fib(n - 1) + fib(n - 2)
-
-
 def part_2(input: str) -> int:
     crabs = list(map(int, input.split(",")))
 
     def move_crabs_to(crabs: list[int], position: int) -> int:
-        pass
+        fuel = 0
+        for crab in crabs:
+            inc = 1
+            for _ in range(abs(position - crab)):
+                fuel += inc
+                inc += 1
+
+        return fuel
 
     min_fuel = 99999999999
     for position in range(len(crabs)):
@@ -59,9 +57,9 @@ def test_part_1_real():
     assert part_1(input) == 349769
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_part_2_real():
+    input = read_input(__file__)
+    assert part_2(input) == 99540554
 
 
 # -- Main
