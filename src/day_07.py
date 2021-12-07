@@ -1,36 +1,45 @@
+# Standard Library
+import sys
+from functools import lru_cache
+
 # First Party
 from utils import read_input
+
+
+def move_crabs_to(crabs: list[int], position: int) -> int:
+    return sum(abs(position - crab) for crab in crabs)
 
 
 def part_1(input: str) -> int:
     crabs = list(map(int, input.split(",")))
 
-    def move_crabs_to(crabs: list[int], position: int) -> int:
-        return sum(abs(position - crab) for crab in crabs)
-
-    min_fuel = 99999999999
+    min_fuel = sys.maxsize
     for position in range(len(crabs)):
         min_fuel = min(min_fuel, move_crabs_to(crabs, position))
 
     return min_fuel
 
 
+def move_crabs_to_exp(crabs: list[int], position: int) -> int:
+    return sum(move_crab_exp(abs(position - crab)) for crab in crabs)
+
+
+@lru_cache(maxsize=None)
+def move_crab_exp(distance: int) -> int:
+    inc = 1
+    fuel = 0
+    for _ in range(distance):
+        fuel += inc
+        inc += 1
+    return fuel
+
+
 def part_2(input: str) -> int:
     crabs = list(map(int, input.split(",")))
 
-    def move_crabs_to(crabs: list[int], position: int) -> int:
-        fuel = 0
-        for crab in crabs:
-            inc = 1
-            for _ in range(abs(position - crab)):
-                fuel += inc
-                inc += 1
-
-        return fuel
-
-    min_fuel = 99999999999
+    min_fuel = sys.maxsize
     for position in range(len(crabs)):
-        min_fuel = min(min_fuel, move_crabs_to(crabs, position))
+        min_fuel = min(min_fuel, move_crabs_to_exp(crabs, position))
 
     return min_fuel
 
@@ -40,6 +49,23 @@ def part_2(input: str) -> int:
 
 def get_example_input() -> str:
     return """16,1,2,0,4,2,7,1,2,14"""
+
+
+def test_move_exp():
+    moves = [
+        (11, 66),
+        (4, 10),
+        (3, 6),
+        (5, 15),
+        (1, 1),
+        (3, 6),
+        (2, 3),
+        (4, 10),
+        (3, 6),
+        (9, 45),
+    ]
+    for distance, fuel in moves:
+        assert move_crab_exp(distance) == fuel
 
 
 def test_part_1():
@@ -63,6 +89,7 @@ def test_part_2_real():
 
 
 # -- Main
+
 
 if __name__ == "__main__":
     input = read_input(__file__)
