@@ -26,12 +26,7 @@ def move_crabs_to_exp(crabs: list[int], position: int) -> int:
 
 @lru_cache(maxsize=None)
 def move_crab_exp(distance: int) -> int:
-    inc = 1
-    fuel = 0
-    for _ in range(distance):
-        fuel += inc
-        inc += 1
-    return fuel
+    return ((distance * distance) + distance) // 2
 
 
 def part_2(input: str) -> int:
