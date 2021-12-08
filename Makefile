@@ -1,4 +1,4 @@
-.PHONY: help clean test go all
+.PHONY: help clean test go all mypy pytest
 .DEFAULT_GOAL := go
 
 HOOKS=$(.git/hooks/pre-commit)
@@ -7,6 +7,8 @@ ALLDAYS=$(wildcard src/day_*.py)
 CURRENT_PY=src/day_$(shell date +%d).py
 CURRENT_INPUT=inputs/day_$(shell date +%d).txt
 COOKIEFILE=cookies.txt
+MYPY_FILES=$(shell grep -L "match" src/*.py)
+MYPY_IGNORED=$(shell grep -l "match" src/*.py)
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -51,9 +53,15 @@ clean:
 	rm -rf .pytest_cache
 	rm -f .testmondata
 
-test: src/*.py
+mypy: $(MYPY_FILES)
+	mypy $^
+	@echo "Following files ignore due to match syntax:"
+	@echo $(MYPY_IGNORED)
+
+pytest: src/*.py
 	pytest $^
-	echo "$^" | sed 's/src\/day_02\.py//g' | xargs mypy
+
+test: pytest mypy
 
 go: init $(CURRENT_PY) $(CURRENT_INPUT) ## Setup current day and start runing test monitor
 	code .
