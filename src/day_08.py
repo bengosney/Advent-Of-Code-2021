@@ -1,24 +1,23 @@
 # Standard Library
 
+# Standard Library
+from typing import Iterable
+
 # First Party
 from utils import read_input
 
-
-def sort_string(string: str) -> str:
-    return "".join(sorted(string))
-
-
-def sort_strings(strings: list[str]) -> list[str]:
-    return list(map(sort_string, strings))
+# Types
+SignalPattern = set[str]
+SignalPatterns = Iterable[SignalPattern]
 
 
-def split_string(string: str) -> list[str]:
-    return [char for char in string]
+def parse_line(line: str) -> tuple[SignalPatterns, SignalPatterns]:
+    def parse(string: str) -> SignalPatterns:
+        return map(lambda s: set(s), string.strip().split(" "))
 
-
-def parse_line(line: str) -> tuple[list[str], list[str]]:
     patterns, output = line.split("|")
-    return patterns.strip().split(" "), output.strip().split(" ")
+
+    return parse(patterns), parse(output)
 
 
 def part_1(input: str) -> int:
@@ -31,30 +30,31 @@ def part_1(input: str) -> int:
     return count
 
 
-def decode(input: tuple[list[str], list[str]]) -> int:
-    pattern, outputs = input
-    numbers = {}
-    others = {5: [], 6: []}
+def decode(input: tuple[SignalPatterns, SignalPatterns]) -> int:
+    patterns, outputs = input
+    numbers: dict[int, SignalPattern] = {}
+    unmatched: dict[int, list[SignalPattern]] = {5: [], 6: []}
 
-    for p in pattern:
-        length = len(p)
-        if length == 2:  # 1
-            numbers[1] = {_ for _ in p}
-        elif length == 3:  # 7
-            numbers[7] = {_ for _ in p}
-        elif length == 4:  # 4
-            numbers[4] = {_ for _ in p}
-        elif length == 7:  # 8
-            numbers[8] = {_ for _ in p}
+    for pattern in patterns:
+        length = len(pattern)
+        if length == 2:
+            numbers[1] = pattern
+        elif length == 3:
+            numbers[7] = pattern
+        elif length == 4:
+            numbers[4] = pattern
+        elif length == 7:
+            numbers[8] = pattern
         else:
-            others[length].append({_ for _ in p})
+            unmatched[length].append(pattern)
 
     segments = {}
 
     segments["a"] = numbers[7] - numbers[1]
-    numbers[9] = [letters for letters in others[6] if len(letters - (numbers[7] | numbers[4])) == 1][0]
+    numbers[9] = [letters for letters in unmatched[6] if len(letters - (numbers[7] | numbers[4])) == 1][0]
+
     segments["g"] = numbers[9] - (numbers[7] | numbers[4])
-    numbers[3] = [letters for letters in others[5] if len(letters - (numbers[7] | segments["g"])) == 1][0]
+    numbers[3] = [letters for letters in unmatched[5] if len(letters - (numbers[7] | segments["g"])) == 1][0]
 
     segments["b"] = numbers[9] - numbers[3]
     segments["e"] = numbers[8] - numbers[9]
@@ -62,7 +62,7 @@ def decode(input: tuple[list[str], list[str]]) -> int:
     numbers[0] = numbers[7] | segments["g"] | segments["e"] | segments["b"]
     segments["d"] = numbers[8] - numbers[0]
 
-    numbers[6] = [letters for letters in others[6] if letters not in list(numbers.values())][0]
+    numbers[6] = [letters for letters in unmatched[6] if letters not in numbers.values()][0]
 
     segments["c"] = numbers[8] - numbers[6]
     segments["f"] = numbers[1] - segments["c"]
@@ -70,13 +70,12 @@ def decode(input: tuple[list[str], list[str]]) -> int:
     numbers[2] = (numbers[3] | segments["e"]) - segments["f"]
     numbers[5] = numbers[6] - segments["e"]
 
-    digits = []
+    decodedDigits: list[str] = []
     for output in outputs:
-        output = {_ for _ in output}
         k = [str(k) for k, v in numbers.items() if output == v][0]
-        digits.append(k)
+        decodedDigits.append(k)
 
-    return int("".join(digits))
+    return int("".join(decodedDigits))
 
 
 def part_2(input: str) -> int:
