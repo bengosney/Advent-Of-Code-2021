@@ -42,7 +42,7 @@ def time_everything(iterations: int = 10, days: list[str] = []) -> None:
     table.add_column("Part 1", justify="right")
     table.add_column("Part 2", justify="right")
 
-    if len(days) == 0:
+    if not days:
         days = [p.name.replace(".py", "") for p in list(Path("./src").glob("day_*.py"))]
 
     with Progress(transient=True) as progress:

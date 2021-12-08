@@ -27,7 +27,7 @@ def move_crabs_to_exp(position: int, crabs: list[int]) -> int:
 
 @lru_cache(maxsize=None)
 def move_crab_exp(distance: int) -> int:
-    return ((distance * distance) + distance) // 2
+    return (distance**2 + distance) // 2
 
 
 def part_2(input: str) -> int:
