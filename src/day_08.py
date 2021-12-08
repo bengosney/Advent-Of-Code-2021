@@ -1,5 +1,23 @@
+# Standard Library
+from collections import defaultdict
+
 # First Party
 from utils import read_input
+
+# Third Party
+from icecream import ic
+
+
+def sort_string(string: str) -> str:
+    return "".join(sorted(string))
+
+
+def sort_strings(strings: list[str]) -> list[str]:
+    return list(map(sort_string, strings))
+
+
+def split_string(string: str) -> list[str]:
+    return [char for char in string]
 
 
 def parse_line(line: str) -> tuple[list[str], list[str]]:
@@ -12,13 +30,39 @@ def part_1(input: str) -> int:
     count = 0
     for line in lines:
         _, output = line
-        if False:  # insert logic here...
-            count += 1
+        count += len([o for o in output if len(o) in [2, 4, 3, 7]])
 
     return count
 
 
+def decode(input: tuple[list[str], list[str]]) -> int:
+    pattern, outputs = input
+    mapping = defaultdict(lambda: set())
+    others = {5: [], 6: []}
+
+    for p in pattern:
+        length = len(p)
+        if length == 2:  # 1
+            mapping[1] = {_ for _ in p}
+        elif length == 3:  # 7
+            mapping[7] = {_ for _ in p}
+        elif length == 4:  # 4
+            mapping[4] = {_ for _ in p}
+        elif length == 7:  # 8
+            mapping[8] = {_ for _ in p}
+        else:
+            others[length].append({_ for _ in p})
+
+    maps = {}
+    maps["a"] = mapping[7] - mapping[1]
+
+    ic(mapping, maps)
+
+    # return int("".join(output))
+
+
 def part_2(input: str) -> int:
+    # lines = [parse_line(line) for line in input.split("\n")]
     pass
 
 
@@ -43,14 +87,18 @@ def test_part_1():
     assert part_1(input) == 26
 
 
-# def test_part_2():
-#     input = get_example_input()
-#     assert part_2(input) is not None
+def test_part_2():
+    input = get_example_input()
+    assert part_2(input) == 61229
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) is not None
+def test_decode():
+    assert decode(parse_line("acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf")) == 5353
+
+
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) == 479
 
 
 # def test_part_2_real():
