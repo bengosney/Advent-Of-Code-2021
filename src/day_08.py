@@ -48,9 +48,8 @@ def decode(input: tuple[SignalPatterns, SignalPatterns]) -> int:
         else:
             unmatched[length].append(pattern)
 
-    segments = {}
+    segments = {'a': numbers[7] - numbers[1]}
 
-    segments["a"] = numbers[7] - numbers[1]
     numbers[9] = [letters for letters in unmatched[6] if len(letters - (numbers[7] | numbers[4])) == 1][0]
 
     segments["g"] = numbers[9] - (numbers[7] | numbers[4])
@@ -80,11 +79,7 @@ def decode(input: tuple[SignalPatterns, SignalPatterns]) -> int:
 
 def part_2(input: str) -> int:
     lines = [parse_line(line) for line in input.split("\n")]
-    tot = 0
-    for line in lines:
-        tot += decode(line)
-
-    return tot
+    return sum(decode(line) for line in lines)
 
 
 # -- Tests
