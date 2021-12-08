@@ -1,11 +1,7 @@
 # Standard Library
-from collections import defaultdict
 
 # First Party
 from utils import read_input
-
-# Third Party
-from icecream import ic
 
 
 def sort_string(string: str) -> str:
@@ -37,33 +33,59 @@ def part_1(input: str) -> int:
 
 def decode(input: tuple[list[str], list[str]]) -> int:
     pattern, outputs = input
-    mapping = defaultdict(lambda: set())
+    numbers = {}
     others = {5: [], 6: []}
 
     for p in pattern:
         length = len(p)
         if length == 2:  # 1
-            mapping[1] = {_ for _ in p}
+            numbers[1] = {_ for _ in p}
         elif length == 3:  # 7
-            mapping[7] = {_ for _ in p}
+            numbers[7] = {_ for _ in p}
         elif length == 4:  # 4
-            mapping[4] = {_ for _ in p}
+            numbers[4] = {_ for _ in p}
         elif length == 7:  # 8
-            mapping[8] = {_ for _ in p}
+            numbers[8] = {_ for _ in p}
         else:
             others[length].append({_ for _ in p})
 
-    maps = {}
-    maps["a"] = mapping[7] - mapping[1]
+    segments = {}
 
-    ic(mapping, maps)
+    segments["a"] = numbers[7] - numbers[1]
+    numbers[9] = [letters for letters in others[6] if len(letters - (numbers[7] | numbers[4])) == 1][0]
+    segments["g"] = numbers[9] - (numbers[7] | numbers[4])
+    numbers[3] = [letters for letters in others[5] if len(letters - (numbers[7] | segments["g"])) == 1][0]
 
-    # return int("".join(output))
+    segments["b"] = numbers[9] - numbers[3]
+    segments["e"] = numbers[8] - numbers[9]
+
+    numbers[0] = numbers[7] | segments["g"] | segments["e"] | segments["b"]
+    segments["d"] = numbers[8] - numbers[0]
+
+    numbers[6] = [letters for letters in others[6] if letters not in list(numbers.values())][0]
+
+    segments["c"] = numbers[8] - numbers[6]
+    segments["f"] = numbers[1] - segments["c"]
+
+    numbers[2] = (numbers[3] | segments["e"]) - segments["f"]
+    numbers[5] = numbers[6] - segments["e"]
+
+    digits = []
+    for output in outputs:
+        output = {_ for _ in output}
+        k = [str(k) for k, v in numbers.items() if output == v][0]
+        digits.append(k)
+
+    return int("".join(digits))
 
 
 def part_2(input: str) -> int:
-    # lines = [parse_line(line) for line in input.split("\n")]
-    pass
+    lines = [parse_line(line) for line in input.split("\n")]
+    tot = 0
+    for line in lines:
+        tot += decode(line)
+
+    return tot
 
 
 # -- Tests
@@ -101,9 +123,9 @@ def test_part_1_real():
     assert part_1(input) == 479
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_part_2_real():
+    input = read_input(__file__)
+    assert part_2(input) == 1041746
 
 
 # -- Main
