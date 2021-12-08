@@ -7,8 +7,8 @@ ALLDAYS=$(wildcard src/day_*.py)
 CURRENT_PY=src/day_$(shell date +%d).py
 CURRENT_INPUT=inputs/day_$(shell date +%d).txt
 COOKIEFILE=cookies.txt
-MYPY_FILES=$(shell grep -L "match" src/*.py)
-MYPY_IGNORED=$(shell grep -l "match" src/*.py)
+MYPY_FILES=$(shell egrep -L "match.*:" src/*.py)
+MYPY_IGNORED=$(shell egrep -l "match.*:" src/*.py)
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
