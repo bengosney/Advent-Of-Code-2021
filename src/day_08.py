@@ -35,20 +35,20 @@ def decode(input: tuple[SignalPatterns, SignalPatterns]) -> int:
     numbers: dict[int, SignalPattern] = {}
     unmatched: dict[int, list[SignalPattern]] = {5: [], 6: []}
 
-    for pattern in patterns:
-        length = len(pattern)
-        if length == 2:
-            numbers[1] = pattern
-        elif length == 3:
-            numbers[7] = pattern
-        elif length == 4:
-            numbers[4] = pattern
-        elif length == 7:
-            numbers[8] = pattern
-        else:
-            unmatched[length].append(pattern)
+    for patternPair in [(len(pattern), pattern) for pattern in patterns]:
+        match patternPair:
+            case [2, pattern]:
+                numbers[1] = pattern
+            case [3, pattern]:
+                numbers[7] = pattern
+            case [4, pattern]:
+                numbers[4] = pattern
+            case [7, pattern]:
+                numbers[8] = pattern
+            case [length, pattern]:
+                unmatched[length].append(pattern)
 
-    segments = {'a': numbers[7] - numbers[1]}
+    segments = {"a": numbers[7] - numbers[1]}
 
     numbers[9] = [letters for letters in unmatched[6] if len(letters - (numbers[7] | numbers[4])) == 1][0]
 
