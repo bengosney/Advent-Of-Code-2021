@@ -4,83 +4,72 @@ from math import prod
 # First Party
 from utils import read_input
 
+# Types
 
-def part_1(input: str) -> int:
+Position = tuple[int, int]
+Grid = dict[Position, int]
+
+
+def get_grid(input: str) -> Grid:
     lines = input.splitlines()
-    grid = {}
-    width = 0
-    height = 0
-    maxheight = 0
+    grid: Grid = {}
+
     for y, line in enumerate(lines):
         for x, c in enumerate(line):
             grid[(x, y)] = int(c)
-            maxheight = max(maxheight, int(c))
-            width = max(width, x)
-            height = max(height, y)
 
-    lowpoints = []
-    for y in range(height + 1):
-        for x in range(width + 1):
-            adj = min(
-                [
-                    grid.get((x - 1, y), maxheight),
-                    grid.get((x + 1, y), maxheight),
-                    grid.get((x, y - 1), maxheight),
-                    grid.get((x, y + 1), maxheight),
-                ]
-            )
-            if grid[(x, y)] < adj:
-                lowpoints.append(grid[(x, y)] + 1)
-
-    return sum(lowpoints)
+    return grid
 
 
-def count_adjacent(grid: dict[tuple[int, int], int], x: int, y: int) -> set[tuple[int, int]]:
-    adj = [
-        (grid.get((x - 1, y), 0), (x - 1, y)),
-        (grid.get((x + 1, y), 0), (x + 1, y)),
-        (grid.get((x, y - 1), 0), (x, y - 1)),
-        (grid.get((x, y + 1), 0), (x, y + 1)),
-    ]
+def get_adjcent(grid: Grid, position: Position, default: int) -> Grid:
+    x, y = position
+    return {
+        (x - 1, y): grid.get((x - 1, y), default),
+        (x + 1, y): grid.get((x + 1, y), default),
+        (x, y - 1): grid.get((x, y - 1), default),
+        (x, y + 1): grid.get((x, y + 1), default),
+    }
+
+
+def get_lowpoints(grid: Grid) -> Grid:
+    maxheight = max(grid.values())
+    lowpoints = {}
+    for position, height in grid.items():
+        adjcent = get_adjcent(grid, position, maxheight)
+        if height < min(adjcent.values()):
+            lowpoints[position] = grid[position] + 1
+
+    return lowpoints
+
+
+def part_1(input: str) -> int:
+    grid = get_grid(input)
+
+    lowpoints = get_lowpoints(grid)
+
+    return sum(lowpoints.values())
+
+
+def count_adjacent(grid: Grid, position: Position) -> set[tuple[int, int]]:
+    x, y = position
+
+    adjacent_cells = get_adjcent(grid, (x, y), 0)
 
     out: set[tuple[int, int]] = {(x, y)}
-    for a, (nx, ny) in adj:
-        if a > grid[(x, y)] and a < 9:
-            out |= count_adjacent(grid, nx, ny)
+    for adjacent_position, adjacent in adjacent_cells.items():
+        if adjacent > grid[(x, y)] and adjacent < 9:
+            out |= count_adjacent(grid, adjacent_position)
 
     return out
 
 
 def part_2(input: str) -> int:
-    lines = input.splitlines()
-    grid = {}
-    width = 0
-    height = 0
-    maxheight = 0
-    for y, line in enumerate(lines):
-        for x, c in enumerate(line):
-            grid[(x, y)] = int(c)
-            maxheight = max(maxheight, int(c))
-            width = max(width, x)
-            height = max(height, y)
-
-    lowpoints = []
-    for y in range(height + 1):
-        for x in range(width + 1):
-            adj = min(
-                [
-                    grid.get((x - 1, y), maxheight),
-                    grid.get((x + 1, y), maxheight),
-                    grid.get((x, y - 1), maxheight),
-                    grid.get((x, y + 1), maxheight),
-                ]
-            )
-            if grid[(x, y)] < adj:
-                lowpoints.append((x, y))
+    grid = get_grid(input)
+    lowpoints = get_lowpoints(grid).keys()
 
     basins: list[int] = []
     for lowpoint in lowpoints:
-        adj = count_adjacent(grid, *lowpoint)
+        adj = count_adjacent(grid, lowpoint)
         basins.append(len(adj))
 
     return prod(sorted(basins)[-3:])
