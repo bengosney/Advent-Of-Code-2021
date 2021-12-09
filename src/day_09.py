@@ -1,3 +1,6 @@
+# Standard Library
+from math import prod
+
 # First Party
 from utils import read_input
 
@@ -32,8 +35,55 @@ def part_1(input: str) -> int:
     return sum(lowpoints)
 
 
+def count_adjacent(grid: dict[tuple[int, int], int], x: int, y: int) -> set[tuple[int, int]]:
+    adj = [
+        (grid.get((x - 1, y), 0), (x - 1, y)),
+        (grid.get((x + 1, y), 0), (x + 1, y)),
+        (grid.get((x, y - 1), 0), (x, y - 1)),
+        (grid.get((x, y + 1), 0), (x, y + 1)),
+    ]
+
+    out: set[tuple[int, int]] = {(x, y)}
+    for a, (nx, ny) in adj:
+        if a > grid[(x, y)] and a < 9:
+            out |= count_adjacent(grid, nx, ny)
+
+    return out
+
+
 def part_2(input: str) -> int:
-    pass
+    lines = input.splitlines()
+    grid = {}
+    width = 0
+    height = 0
+    maxheight = 0
+    for y, line in enumerate(lines):
+        for x, c in enumerate(line):
+            grid[(x, y)] = int(c)
+            maxheight = max(maxheight, int(c))
+            width = max(width, x)
+            height = max(height, y)
+
+    lowpoints = []
+    for y in range(height + 1):
+        for x in range(width + 1):
+            adj = min(
+                [
+                    grid.get((x - 1, y), maxheight),
+                    grid.get((x + 1, y), maxheight),
+                    grid.get((x, y - 1), maxheight),
+                    grid.get((x, y + 1), maxheight),
+                ]
+            )
+            if grid[(x, y)] < adj:
+                lowpoints.append((x, y))
+
+    basins: list[int] = []
+    for lowpoint in lowpoints:
+        adj = count_adjacent(grid, *lowpoint)
+        basins.append(len(adj))
+
+    return prod(sorted(basins)[-3:])
 
 
 # -- Tests
@@ -63,9 +113,9 @@ def test_part_1_real():
     assert part_1(input) == 475
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_part_2_real():
+    input = read_input(__file__)
+    assert part_2(input) == 1092012
 
 
 # -- Main
