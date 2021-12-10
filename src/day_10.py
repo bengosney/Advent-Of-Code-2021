@@ -1,19 +1,17 @@
 # Standard Library
 from collections import Counter
+from statistics import median_low
+from typing import Iterable
 
 # First Party
 from utils import read_input
 
 
-def match_pair(line):
-    pairs = {
-        "(": ")",
-        "[": "]",
-        "{": "}",
-        "<": ">",
-    }
-    open = []
-    errors = []
+def match_pair(line: str) -> tuple[list[str], list[str]]:
+    open: list[str] = []
+    errors: list[str] = []
+    pairs: dict[str, str] = dict(zip("([{<", ")]}>"))
+
     for char in line:
         if char in pairs:
             open.append(char)
@@ -24,50 +22,31 @@ def match_pair(line):
 
 
 def part_1(input: str) -> int:
-    lines = input.splitlines()
+    lines: list[str] = input.splitlines()
+    points: dict[str, int] = dict(zip(")]}>", [3, 57, 1197, 25137]))
 
-    points = {
-        ")": 3,
-        "]": 57,
-        "}": 1197,
-        ">": 25137,
-    }
-
-    err = []
+    error_count = Counter()
     for line in lines:
-        new_errors, _ = match_pair(line)
-        err += new_errors
+        errors, _ = match_pair(line)
+        error_count.update(errors)
 
-    count = Counter(err)
-    return sum(points[char] * count[char] for char in count)
+    return sum(points[char] * error_count[char] for char in error_count)
 
 
-def score_autocomplete(open):
-    points = {
-        ")": 1,
-        "]": 2,
-        "}": 3,
-        ">": 4,
-    }
-    score = 0
-    for c in open:
-        score *= 5
-        score += points[c]
+def score_autocomplete(open: Iterable[str]) -> int:
+    points: dict[str, int] = dict(zip(")]}>", [1, 2, 3, 4]))
+    score: int = 0
+    for char in open:
+        score = (score * 5) + points[char]
 
     return score
 
 
 def part_2(input: str) -> int:
-    lines = input.splitlines()
+    lines: list[str] = input.splitlines()
+    pairs: dict[str, str] = dict(zip("([{<", ")]}>"))
 
-    pairs = {
-        "(": ")",
-        "[": "]",
-        "{": "}",
-        "<": ">",
-    }
-
-    scores = []
+    scores: list[int] = []
     for line in lines:
         errors, new_open = match_pair(line)
         if len(errors) != 0:
@@ -75,8 +54,7 @@ def part_2(input: str) -> int:
         closing = reversed([pairs[char] for char in new_open])
         scores.append(score_autocomplete(closing))
 
-    scores = sorted(scores)
-    return scores[len(scores) // 2]
+    return median_low(scores)
 
 
 # -- Tests
