@@ -42,15 +42,24 @@ def part_1(input: str) -> int:
     return sum(points[char] * count[char] for char in count)
 
 
-def part_2(input: str) -> int:
-    lines = input.splitlines()
-
+def score_autocomplete(open):
     points = {
         ")": 1,
         "]": 2,
         "}": 3,
         ">": 4,
     }
+    score = 0
+    for c in open:
+        score *= 5
+        score += points[c]
+
+    return score
+
+
+def part_2(input: str) -> int:
+    lines = input.splitlines()
+
     pairs = {
         "(": ")",
         "[": "]",
@@ -58,13 +67,16 @@ def part_2(input: str) -> int:
         "<": ">",
     }
 
-    open = []
+    scores = []
     for line in lines:
-        _, new_open = match_pair(line)
-        open += [pairs[char] for char in new_open]
+        errors, new_open = match_pair(line)
+        if len(errors) != 0:
+            continue
+        closing = reversed([pairs[char] for char in new_open])
+        scores.append(score_autocomplete(closing))
 
-    count = Counter(open)
-    return sum(points[char] * count[char] for char in count)
+    scores = sorted(scores)
+    return scores[len(scores) // 2]
 
 
 # -- Tests
@@ -91,17 +103,29 @@ def test_part_1():
 
 def test_part_2():
     input = get_example_input()
-    assert part_2(input) == 436497
+    assert part_2(input) == 288957
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) is not None
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) == 436497
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_score():
+    pairs = {
+        "])}>": 294,
+        "}}]])})]": 288957,
+        ")}>]})": 5566,
+        "}}>}>))))": 1480781,
+        "]]}}]}]}>": 995444,
+    }
+    for q, a in pairs.items():
+        assert score_autocomplete(q) == a
+
+
+def test_part_2_real():
+    input = read_input(__file__)
+    assert part_2(input) == 2377613374
 
 
 # -- Main
