@@ -20,7 +20,7 @@ def match_pair(line):
         elif char != pairs[open.pop()]:
             errors.append(char)
 
-    return errors
+    return errors, open
 
 
 def part_1(input: str) -> int:
@@ -35,14 +35,36 @@ def part_1(input: str) -> int:
 
     err = []
     for line in lines:
-        err += match_pair(line)
+        new_errors, _ = match_pair(line)
+        err += new_errors
 
     count = Counter(err)
     return sum(points[char] * count[char] for char in count)
 
 
 def part_2(input: str) -> int:
-    pass
+    lines = input.splitlines()
+
+    points = {
+        ")": 1,
+        "]": 2,
+        "}": 3,
+        ">": 4,
+    }
+    pairs = {
+        "(": ")",
+        "[": "]",
+        "{": "}",
+        "<": ">",
+    }
+
+    open = []
+    for line in lines:
+        _, new_open = match_pair(line)
+        open += [pairs[char] for char in new_open]
+
+    count = Counter(open)
+    return sum(points[char] * count[char] for char in count)
 
 
 # -- Tests
