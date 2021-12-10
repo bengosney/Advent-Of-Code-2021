@@ -25,7 +25,7 @@ def part_1(input: str) -> int:
     lines: list[str] = input.splitlines()
     points: dict[str, int] = dict(zip(")]}>", [3, 57, 1197, 25137]))
 
-    error_count = Counter()
+    error_count: Counter = Counter()
     for line in lines:
         errors, _ = match_pair(line)
         error_count.update(errors)
