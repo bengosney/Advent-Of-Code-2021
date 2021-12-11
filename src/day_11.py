@@ -2,7 +2,6 @@
 import os
 import textwrap
 from math import sqrt
-from typing import Iterator
 
 # First Party
 from utils import read_input
@@ -14,46 +13,42 @@ Grid = dict[Position, int]
 
 
 def get_grid(input: str) -> Grid:
-    lines = input.splitlines()
     grid: Grid = {}
-    for y, row in enumerate(lines):
+    for y, row in enumerate(input.splitlines()):
         for x, cell in enumerate(row):
             grid[(x, y)] = int(cell)
 
     return grid
 
 
-def surrounding(position: Position) -> Iterator[Position]:
+def neighbors(position: Position) -> list[Position]:
     x, y = position
-    for dx in range(-1, 2):
-        for dy in range(-1, 2):
-            yield (x + dx, y + dy)
+    return [(x + dx, y + dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
 
 
 def flash(grid: Grid, position: Position, flashed: set[Position]) -> tuple[Grid, set[Position]]:
     if position not in flashed:
         flashed.add(position)
-        for neighbor in surrounding(position):
-            if neighbor in grid:
-                grid[neighbor] += 1
-                if grid[neighbor] >= 10:
-                    flash(grid, neighbor, flashed)
+        for neighbor in [n for n in neighbors(position) if n in grid]:
+            grid[neighbor] += 1
+            if grid[neighbor] >= 10:
+                flash(grid, neighbor, flashed)
 
     return grid, flashed
 
 
-def draw(grid: Grid) -> str:
+def flattenForTesting(grid: Grid) -> str:
     flat = "".join(map(str, grid.values()))
     lines = textwrap.wrap(flat, int(sqrt(len(flat))))
     return "\n".join(lines)
 
 
 def step(grid: Grid) -> tuple[Grid, int]:
-    flashed = set()
-    for position, power in grid.items():
+    flashed: set[Position] = set()
+    for position in grid:
         grid[position] += 1
 
-    for position, power in grid.items():
+    for position in grid:
         if grid[position] == 10:
             grid, newFlashed = flash(grid, position, flashed)
             flashed |= newFlashed
@@ -69,8 +64,8 @@ def part_1(input: str) -> int:
 
     flashes = 0
     for _ in range(100):
-        grid, f = step(grid)
-        flashes += f
+        grid, stepFlashes = step(grid)
+        flashes += stepFlashes
 
     return flashes
 
@@ -81,11 +76,9 @@ def part_2(input: str) -> int:
     flashes = 0
     octopuses = len(grid)
     steps = 0
-    while True:
+    while flashes != octopuses:
         grid, flashes = step(grid)
         steps += 1
-        if flashes == octopuses:
-            break
 
     return steps
 
@@ -121,11 +114,10 @@ def test_step_function():
     )
 
     grid, _ = step(grid)
-    print(draw(grid))
-    assert draw(grid) == "34543\n40004\n50005\n40004\n34543"
+    assert flattenForTesting(grid) == "34543\n40004\n50005\n40004\n34543"
 
     grid, _ = step(grid)
-    assert draw(grid) == "45654\n51115\n61116\n51115\n45654"
+    assert flattenForTesting(grid) == "45654\n51115\n61116\n51115\n45654"
 
 
 def test_steps():
@@ -138,13 +130,11 @@ def test_steps():
         tests[stepNumber] = section[1:]
 
     grid = get_grid(get_example_input())
-    print(draw(grid))
+
     for stepNumber in range(1, max(tests.keys()) + 1):
         grid, _ = step(grid)
         if stepNumber in tests:
-            print(f"After {stepNumber}:")
-            print(draw(grid))
-            assert draw(grid).replace("|", "") == "\n".join(tests[stepNumber])
+            assert flattenForTesting(grid) == "\n".join(tests[stepNumber])
 
 
 def test_part_2():

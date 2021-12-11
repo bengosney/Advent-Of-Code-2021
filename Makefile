@@ -66,4 +66,4 @@ test: pytest mypy
 go: init $(CURRENT_PY) $(CURRENT_INPUT) ## Setup current day and start runing test monitor
 	code .
 	code src/day_$(shell date +%d).py
-	ptw --runner "pytest --testmon" src/*.py
+	ptw --runner "pytest --testmon" --onfail "notify-send \"Failed\"" --onpass "notify-send \"Passed\"" src/*.py
