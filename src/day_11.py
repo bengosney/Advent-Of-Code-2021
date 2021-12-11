@@ -27,8 +27,6 @@ def surrounding(position: Position) -> Iterator[Position]:
     x, y = position
     for dx in range(-1, 2):
         for dy in range(-1, 2):
-            # if dx == 0 and dy == 0:
-            #    continue
             yield (x + dx, y + dy)
 
 
@@ -70,18 +68,26 @@ def part_1(input: str) -> int:
     grid: Grid = get_grid(input)
 
     flashes = 0
-
     for _ in range(100):
-        # draw(grid)
         grid, f = step(grid)
         flashes += f
 
-    # print(draw(grid))
     return flashes
 
 
 def part_2(input: str) -> int:
-    pass
+    grid: Grid = get_grid(input)
+
+    flashes = 0
+    octopuses = len(grid)
+    steps = 0
+    while True:
+        grid, flashes = step(grid)
+        steps += 1
+        if flashes == octopuses:
+            break
+
+    return steps
 
 
 # -- Tests
@@ -141,19 +147,19 @@ def test_steps():
             assert draw(grid).replace("|", "") == "\n".join(tests[stepNumber])
 
 
-# def test_part_2():
-#     input = get_example_input()
-#     assert part_2(input) is not None
+def test_part_2():
+    input = get_example_input()
+    assert part_2(input) == 195
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) is not None
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) == 1588
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_part_2_real():
+    input = read_input(__file__)
+    assert part_2(input) == 517
 
 
 # -- Main
