@@ -1,5 +1,7 @@
 # Standard Library
-from itertools import combinations
+import multiprocessing as mp
+from functools import partial
+from itertools import chain, combinations
 
 # First Party
 from utils import read_input
@@ -74,16 +76,20 @@ def part_1(input: str) -> int:
     return len(paths)
 
 
+def walk(name, nodes):
+    return nodes["start"].walk([], name)
+
+
 def part_2(input: str) -> int:
     lines = input.splitlines()
     nodes = node.build(lines)
 
-    paths = []
-    small_names = [n.name for n in nodes.values() if n.type == node.SMALL]
-    for name in small_names:
-        paths += nodes["start"].walk([], name)
+    walk_nodes = partial(walk, nodes=nodes)
 
-    return len(set(paths))
+    pool = mp.Pool(mp.cpu_count())
+    paths = pool.map(walk_nodes, [n.name for n in nodes.values() if n.type == node.SMALL])
+
+    return len(set(chain.from_iterable(paths)))
 
 
 # -- Tests
@@ -114,9 +120,9 @@ def test_part_1_real():
     assert part_1(input) == 4304
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_part_2_real():
+    input = read_input(__file__)
+    assert part_2(input) == 118242
 
 
 # -- Main
