@@ -1,26 +1,30 @@
+# Standard Library
+from itertools import combinations
+
 # First Party
 from utils import read_input
 
-# Third Party
-from icecream import ic
-
 
 class node:
+    BIG = "big"
+    SMALL = "small"
+    SPECIAL = "special"
+
     def __init__(self, name) -> None:
         self.name = name
-        self.links = set()
-        self.size = "big" if ord(name[0]) < 97 else "small"
+        self.links: set["node"] = set()
+        self.size = self.BIG if ord(name[0]) < 97 else self.SMALL
 
     @classmethod
     def build(cls, lines: list[str]) -> dict[str, "node"]:
-        nodes = {}
+        nodes: dict[str, "node"] = {}
         for line in lines:
-            name1, name2 = line.split("-")
-            if name1 not in nodes:
-                nodes[name1] = node(name1)
-            if name2 not in nodes:
-                nodes[name2] = node(name2)
-            nodes[name1].link(nodes[name2])
+            names = line.split("-")
+            for name in names:
+                nodes[name] = nodes.get(name, cls(name))
+
+            for name1, name2 in combinations(names, 2):
+                nodes[name1].link(nodes[name2])
 
         return nodes
 
@@ -30,6 +34,13 @@ class node:
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def type(self) -> str:
+        if self.name in ["start", "end"]:
+            return self.SPECIAL
+
+        return self.size
 
     def walk(self, visited: list["node"] = [], can_revisit: str | None = None) -> list[str]:
         if self.name == "end":
@@ -68,8 +79,7 @@ def part_2(input: str) -> int:
     nodes = node.build(lines)
 
     paths = []
-    small_names = [n.name for n in nodes.values() if n.size == "small" and n.name not in ["start", "end"]]
-    ic(small_names)
+    small_names = [n.name for n in nodes.values() if n.type == node.SMALL]
     for name in small_names:
         paths += nodes["start"].walk([], name)
 
