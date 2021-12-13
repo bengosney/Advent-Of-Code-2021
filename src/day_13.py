@@ -44,21 +44,23 @@ def fold_grid(grid: Grid, fold: Fold) -> Grid:
     axis, value = fold
     (max_x, max_y), (min_x, min_y) = min_max(grid)
 
-    if axis == "x":
-        for x in range(value, max_x + 1):
-            for y in range(min_y, max_y + 1):
-                m = value - (x - value)
-                if grid[(x, y)] == "#":
-                    grid[(m, y)] = grid[(x, y)]
-                del grid[(x, y)]
+    def to_pos(x, y) -> Position:
+        return (value - (x - value), y) if axis == "x" else (x, value - (y - value))
 
+    if axis == "x":
+        x_range = range(value, max_x + 1)
+        y_range = range(min_y, max_y + 1)
     elif axis == "y":
-        for y in range(value, max_y + 1):
-            for x in range(min_x, max_x + 1):
-                m = value - (y - value)
-                if grid[(x, y)] == "#":
-                    grid[(x, m)] = grid[(x, y)]
-                del grid[(x, y)]
+        x_range = range(min_x, max_x + 1)
+        y_range = range(value, max_y + 1)
+    else:
+        raise ValueError(f"Unknown axis {axis}")
+
+    for x in x_range:
+        for y in y_range:
+            if grid[(x, y)] == "#":
+                grid[to_pos(x, y)] = grid[(x, y)]
+            del grid[(x, y)]
 
     return grid
 
