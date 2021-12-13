@@ -105,7 +105,7 @@ def part_1(input: str) -> int:
         grid = fold_grid(grid, fold)
         break
 
-    return sum(1 for _, v in grid.items() if v == "#")
+    return sum(v == "#" for _, v in grid.items())
 
 
 def part_2(input: str) -> str:
