@@ -32,13 +32,18 @@ def min_max(grid: Grid) -> tuple[tuple[int, int], tuple[int, int]]:
     return (x_max, y_max), (x_min, y_min)
 
 
-def draw(grid: Grid) -> None:
+def draw(grid: Grid, output: bool = False) -> str:
+    rep = ""
     (max_x, max_y), (min_x, min_y) = min_max(grid)
     for y in range(min_y, max_y + 1):
         for x in range(min_x, max_x + 1):
-            print(grid[(x, y)], end="")
-        print()
-    print()
+            rep += grid[(x, y)]
+        rep += "\n"
+
+    if output:
+        print(f"\n{rep}\n\n")
+
+    return rep
 
 
 def fold_grid(grid: Grid, fold: Fold) -> Grid:
@@ -46,18 +51,20 @@ def fold_grid(grid: Grid, fold: Fold) -> Grid:
     (max_x, max_y), (min_x, min_y) = min_max(grid)
 
     if axis == "x":
-        for x in range((max_x + 1) - value):
+        for x in range(value, max_x + 1):
             for y in range(min_y, max_y + 1):
-                if grid[(value + x, y)] == "#":
-                    grid[(value - x, y)] = grid[(value + x, y)]
-                del grid[(value + x, y)]
+                m = value - (x - value)
+                if grid[(x, y)] == "#":
+                    grid[(m, y)] = grid[(x, y)]
+                del grid[(x, y)]
 
     elif axis == "y":
-        for y in range((max_y + 1) - value):
+        for y in range(value, max_y + 1):
             for x in range(min_x, max_x + 1):
-                if grid[(value + y, x)] == "#":
-                    grid[(value - y, x)] = grid[(value + y, x)]
-                del grid[(value + y, x)]
+                m = value - (y - value)
+                if grid[(x, y)] == "#":
+                    grid[(x, m)] = grid[(x, y)]
+                del grid[(x, y)]
 
     return grid
 
@@ -78,8 +85,19 @@ def part_1(input: str) -> int:
     return sum(1 for _, v in grid.items() if v == "#")
 
 
-def part_2(input: str) -> int:
-    pass
+def part_2(input: str) -> str:
+    raw_cords, raw_folds = input.split("\n\n")
+    cords = parse_coords(raw_cords.split("\n"))
+    folds = parse_folds(raw_folds.split("\n"))
+
+    grid = defaultdict(lambda: ".")
+    for position in cords:
+        grid[position] = "#"
+
+    for fold in folds:
+        grid = fold_grid(grid, fold)
+
+    return "\n" + draw(grid, True)
 
 
 # -- Tests
@@ -114,9 +132,9 @@ def test_part_1():
     assert part_1(input) == 17
 
 
-# def test_part_2():
-#     input = get_example_input()
-#     assert part_2(input) is not None
+def test_part_2():
+    input = get_example_input()
+    assert part_2(input).strip() == "#####\n#...#\n#...#\n#...#\n#####"
 
 
 def test_part_1_real():
@@ -124,9 +142,13 @@ def test_part_1_real():
     assert part_1(input) == 735
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_part_2_real():
+    input = read_input(__file__)
+    # assert part_2(input) == 'UFRZKAUZ'
+    assert (
+        part_2(input).strip()
+        == "#..#.####.###..####.#..#..##..#..#.####\n#..#.#....#..#....#.#.#..#..#.#..#....#\n#..#.###..#..#...#..##...#..#.#..#...#.\n#..#.#....###...#...#.#..####.#..#..#..\n#..#.#....#.#..#....#.#..#..#.#..#.#...\n.##..#....#..#.####.#..#.#..#..##..####"  # noqa
+    )
 
 
 # -- Main
