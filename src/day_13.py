@@ -23,27 +23,21 @@ def parse_folds(input: list[str]) -> Iterator[Fold]:
         yield (axis, int(value))
 
 
-def min_max(grid: Grid) -> tuple[tuple[int, int], tuple[int, int]]:
-    x_max = max(x for x, _ in grid)
-    y_max = max(y for _, y in grid)
-    x_min = min(x for x, _ in grid)
-    y_min = min(y for _, y in grid)
+def min_max(grid: Grid) -> tuple[Position, Position]:
+    x, y = zip(*grid)
 
-    return (x_max, y_max), (x_min, y_min)
+    return (max(x), max(y)), (min(x), min(y))
 
 
-def draw(grid: Grid, output: bool = False) -> str:
-    rep = ""
+def draw(grid: Grid) -> str:
+    output = ""
     (max_x, max_y), (min_x, min_y) = min_max(grid)
     for y in range(min_y, max_y + 1):
         for x in range(min_x, max_x + 1):
-            rep += grid[(x, y)]
-        rep += "\n"
+            output += grid[(x, y)]
+        output += "\n"
 
-    if output:
-        print(f"\n{rep}\n\n")
-
-    return rep
+    return output
 
 
 def fold_grid(grid: Grid, fold: Fold) -> Grid:
@@ -74,7 +68,7 @@ def part_1(input: str) -> int:
     cords = parse_coords(raw_cords.split("\n"))
     folds = parse_folds(raw_folds.split("\n"))
 
-    grid = defaultdict(lambda: ".")
+    grid: Grid = defaultdict(lambda: ".")
     for position in cords:
         grid[position] = "#"
 
@@ -90,14 +84,14 @@ def part_2(input: str) -> str:
     cords = parse_coords(raw_cords.split("\n"))
     folds = parse_folds(raw_folds.split("\n"))
 
-    grid = defaultdict(lambda: ".")
+    grid: Grid = defaultdict(lambda: ".")
     for position in cords:
         grid[position] = "#"
 
     for fold in folds:
         grid = fold_grid(grid, fold)
 
-    return "\n" + draw(grid, True)
+    return "\n" + draw(grid)
 
 
 # -- Tests
