@@ -1,5 +1,5 @@
 # Standard Library
-from collections import Counter, deque
+from collections import Counter, defaultdict, deque
 
 # First Party
 from utils import read_input
@@ -47,18 +47,25 @@ def part_1(input: str) -> int:
 
 def part_2(input: str) -> int:
     start, pairs = parse_input(input)
-    working = deque([s for s in start])
+    pair_counts = defaultdict(lambda: 0)
+    element_counts = defaultdict(lambda: 0)
 
-    for i in range(40):
-        print(i)
-        working = do_round(working, pairs)
+    for i in range(len(start)):
+        try:
+            pair = f"{start[i]}{start[i+1]}"
+            pair_counts[pair] += 1
+        except IndexError:
+            pass
+        element_counts[start[i]] += 1
 
-    counts = Counter(working)
+    for _ in range(40):
+        for pair, count in pair_counts.copy().items():
+            pair_counts[pair] -= count
+            element_counts[pairs[pair]] += count
+            pair_counts[f"{pair[0]}{pairs[pair]}"] += count
+            pair_counts[f"{pairs[pair]}{pair[1]}"] += count
 
-    _, most = counts.most_common()[0]
-    _, least = counts.most_common()[-1]
-
-    return most - least
+    return max(element_counts.values()) - min(element_counts.values())
 
 
 # -- Tests
@@ -90,19 +97,19 @@ def test_part_1():
     assert part_1(input) == 1588
 
 
-# def test_part_2():
-#     input = get_example_input()
-#     assert part_2(input) is not None
+def test_part_2():
+    input = get_example_input()
+    assert part_2(input) == 2188189693529
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) is not None
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) == 3118
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_part_2_real():
+    input = read_input(__file__)
+    assert part_2(input) == 4332887448171
 
 
 # -- Main
