@@ -1,11 +1,8 @@
 # Standard Library
-from collections import deque
+from collections import Counter, deque
 
 # First Party
 from utils import read_input
-
-# Third Party
-from icecream import ic
 
 Pairs = dict[str, str]
 Polymer = deque[str]
@@ -37,13 +34,31 @@ def part_1(input: str) -> int:
     start, pairs = parse_input(input)
     working = deque([s for s in start])
 
-    for _ in range(3):
-        ic("".join(working))
+    for _ in range(10):
         working = do_round(working, pairs)
+
+    counts = Counter(working)
+
+    _, most = counts.most_common()[0]
+    _, least = counts.most_common()[-1]
+
+    return most - least
 
 
 def part_2(input: str) -> int:
-    pass
+    start, pairs = parse_input(input)
+    working = deque([s for s in start])
+
+    for i in range(40):
+        print(i)
+        working = do_round(working, pairs)
+
+    counts = Counter(working)
+
+    _, most = counts.most_common()[0]
+    _, least = counts.most_common()[-1]
+
+    return most - least
 
 
 # -- Tests
