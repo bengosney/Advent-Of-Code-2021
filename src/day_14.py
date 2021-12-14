@@ -1,5 +1,6 @@
 # Standard Library
-from collections import Counter, defaultdict, deque
+from collections import Counter, deque
+from itertools import pairwise
 
 # First Party
 from utils import read_input
@@ -19,53 +20,29 @@ def parse_input(input: str) -> tuple[str, Pairs]:
     return start, pairs
 
 
-def do_round(working: Polymer, pairs: Pairs) -> Polymer:
-    for _ in range(len(working) - 1):
-        pair = working[0] + working[1]
-        working.insert(1, pairs[pair])
-        working.rotate(-2)
+def do_work(inital: str, pairs: Pairs, rounds: int) -> int:
+    pair_counts = Counter(["".join(pair) for pair in pairwise(inital)])
+    elements = Counter(inital)
 
-    working.rotate(-1)
-
-    return working
-
-
-def part_1(input: str) -> int:
-    start, pairs = parse_input(input)
-    working = deque([s for s in start])
-
-    for _ in range(10):
-        working = do_round(working, pairs)
-
-    counts = Counter(working)
-
-    _, most = counts.most_common()[0]
-    _, least = counts.most_common()[-1]
-
-    return most - least
-
-
-def part_2(input: str) -> int:
-    start, pairs = parse_input(input)
-    pair_counts = defaultdict(lambda: 0)
-    element_counts = defaultdict(lambda: 0)
-
-    for i in range(len(start)):
-        try:
-            pair = f"{start[i]}{start[i+1]}"
-            pair_counts[pair] += 1
-        except IndexError:
-            pass
-        element_counts[start[i]] += 1
-
-    for _ in range(40):
+    for _ in range(rounds):
         for pair, count in pair_counts.copy().items():
             pair_counts[pair] -= count
-            element_counts[pairs[pair]] += count
+            elements[pairs[pair]] += count
             pair_counts[f"{pair[0]}{pairs[pair]}"] += count
             pair_counts[f"{pairs[pair]}{pair[1]}"] += count
 
-    return max(element_counts.values()) - min(element_counts.values())
+    most_common = elements.most_common()
+    return most_common[0][1] - most_common[-1][1]
+
+
+def part_1(input: str) -> int:
+    inital, pairs = parse_input(input)
+    return do_work(inital, pairs, 10)
+
+
+def part_2(input: str) -> int:
+    inital, pairs = parse_input(input)
+    return do_work(inital, pairs, 40)
 
 
 # -- Tests
