@@ -8,6 +8,7 @@ from utils import read_input
 
 Position = tuple[int, int]
 Grid = dict[Position, int]
+Graph = dict[Position, list[tuple[Position, int]]]
 
 
 def parse_input(input: str) -> Grid:
@@ -24,15 +25,14 @@ def get_neighbors(position: Position) -> list[Position]:
     return [(x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1)]
 
 
-def min_max(grid: Grid) -> tuple[Position, Position]:
+def grid_max(grid: Grid) -> Position:
     x, y = zip(*grid)
+    return (max(x), max(y))
 
-    return (max(x), max(y)), (min(x), min(y))
 
-
-def dijkstra(graph, start: Position, target: Position) -> int:
-    queue = [(0, start)]
-    seen = set()
+def dijkstra(graph: Graph, start: Position, target: Position) -> int:
+    queue: list[tuple[int, Position]] = [(0, start)]
+    seen: set[Position] = set()
     mins = {start: 0}
     while queue:
         (cost, current) = heappop(queue)
@@ -53,41 +53,39 @@ def dijkstra(graph, start: Position, target: Position) -> int:
     return int("inf")
 
 
-def solve(grid: Grid) -> int:
-    graph = defaultdict(list)
+def solve(grid: Grid, target: Position) -> int:
+    graph: Graph = defaultdict(list)
     for position in grid.keys():
         for neighbor in get_neighbors(position):
             if neighbor in grid:
                 graph[position].append((neighbor, grid[neighbor]))
-
-    target, _ = min_max(grid)
 
     return dijkstra(graph, (0, 0), target)
 
 
 def part_1(input: str) -> int:
     grid = parse_input(input)
-    return solve(grid)
+    return solve(grid, grid_max(grid))
+
+
+def expand_grid(grid: Grid, w: int, h: int) -> Grid:
+    for x in range(w, w * 5):
+        for y in range(h):
+            grid[(x, y)] = grid.get((x, y), grid[(x - w, y)] % 9 + 1)
+
+    for x in range(w * 5):
+        for y in range(h, h * 5):
+            grid[(x, y)] = grid.get((x, y), grid[(x, y - w)] % 9 + 1)
+
+    return grid
 
 
 def part_2(input: str) -> int:
     grid = parse_input(input)
-    (w_, h_), _ = min_max(grid)
-    w = w_ + 1
-    h = h_ + 1
-    expanded_grid: Grid = grid.copy()
+    (w, h) = grid_max(grid)
+    grid = expand_grid(grid, w + 1, h + 1)
 
-    new_w = w * 5
-    new_h = h * 5
-    for x in range(w, new_w):
-        for y in range(h):
-            expanded_grid[(x, y)] = expanded_grid.get((x, y), expanded_grid[(x - w, y)] % 9 + 1)
-
-    for x in range(new_w):
-        for y in range(h, new_h):
-            expanded_grid[(x, y)] = expanded_grid.get((x, y), expanded_grid[(x, y - w)] % 9 + 1)
-
-    return solve(expanded_grid)
+    return solve(grid, grid_max(grid))
 
 
 # -- Tests
