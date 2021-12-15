@@ -2,6 +2,7 @@ black
 click
 icecream
 mypy
+networkx
 pip-tools
 pre-commit
 pytest

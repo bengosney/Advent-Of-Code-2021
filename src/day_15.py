@@ -1,9 +1,11 @@
 # Standard Library
 import sys
-from functools import lru_cache
 
 # First Party
 from utils import read_input
+
+# Third Party
+import networkx as nx
 
 Position = tuple[int, int]
 Grid = dict[Position, int]
@@ -31,48 +33,41 @@ def min_max(grid: Grid) -> tuple[Position, Position]:
     return (max(x), max(y)), (min(x), min(y))
 
 
+def solve(grid: Grid) -> int:
+    (tx, ty), _ = min_max(grid)
+    cave = nx.grid_2d_graph(tx, ty, create_using=nx.DiGraph)
+    for y in range(ty + 1):
+        for x in range(tx + 1):
+            for n in get_neighbors((x, y)):
+                if n in grid:
+                    cave.add_edge(n, (x, y), weight=grid[n])
+
+    return nx.dijkstra_path_length(cave, (0, 0), (tx, ty))
+
+
 def part_1(input: str) -> int:
     grid = parse_input(input)
-    target, _ = min_max(grid)
-    visited = []
-    path = []
-    paths = []
-    bob = [sum(grid.values()), 610]
-
-    @lru_cache(maxsize=None)
-    def walk(position: Position, score: int) -> None | int:
-        current_score = score + grid[position]
-        if current_score > min(bob):
-            return
-
-        if position == target:
-            bob.append(current_score)
-            paths.append(",".join(map(str, path)))
-            return
-
-        visited.append(position)
-        path.append(grid[position])
-
-        neighbors = []
-        for neighbor in get_neighbors(position):
-            if neighbor in grid and neighbor not in visited:
-                neighbors.append(neighbor)
-
-        sorted_n = sorted(neighbors, key=lambda n: grid[n])
-        for neighbor in sorted_n:
-            walk(neighbor, current_score)
-
-        visited.remove(position)
-        path.remove(grid[position])
-
-        return
-
-    walk((0, 0), -grid[(0, 0)])
-    return min(bob)
+    return solve(grid)
 
 
 def part_2(input: str) -> int:
-    pass
+    grid = parse_input(input)
+    (w_, h_), _ = min_max(grid)
+    w = w_ + 1
+    h = h_ + 1
+    expanded_grid: Grid = grid.copy()
+
+    new_w = w * 5
+    new_h = h * 5
+    for x in range(w, new_w):
+        for y in range(h):
+            expanded_grid[(x, y)] = expanded_grid.get((x, y), expanded_grid[(x - w, y)] % 9 + 1)
+
+    for x in range(new_w):
+        for y in range(h, new_h):
+            expanded_grid[(x, y)] = expanded_grid.get((x, y), expanded_grid[(x, y - w)] % 9 + 1)
+
+    return solve(expanded_grid)
 
 
 # -- Tests
@@ -96,18 +91,19 @@ def test_part_1():
     assert part_1(input) == 40
 
 
-# def test_part_2():
-#     input = get_example_input()
-#     assert part_2(input) is not None
+def test_part_2():
+    input = get_example_input()
+    assert part_2(input) == 315
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) is not None
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) is not None
 
-# def test_part_1_real_fail1():
-#    input = read_input(__file__)
-#    assert part_1(input) < 610
+
+def test_part_1_real_fail1():
+    input = read_input(__file__)
+    assert part_1(input) < 610
 
 
 # def test_part_2_real():

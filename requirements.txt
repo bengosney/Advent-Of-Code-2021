@@ -48,6 +48,8 @@ mypy-extensions==0.4.3
     # via
     #   black
     #   mypy
+networkx==2.6.3
+    # via -r requirements.in
 nodeenv==1.6.0
     # via pre-commit
 packaging==21.3
