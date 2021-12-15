@@ -5,9 +5,6 @@ from functools import lru_cache
 # First Party
 from utils import read_input
 
-# Third Party
-from icecream import ic
-
 Position = tuple[int, int]
 Grid = dict[Position, int]
 
@@ -40,7 +37,7 @@ def part_1(input: str) -> int:
     visited = []
     path = []
     paths = []
-    bob = [sum(grid.values())]
+    bob = [sum(grid.values()), 610]
 
     @lru_cache(maxsize=None)
     def walk(position: Position, score: int) -> None | int:
@@ -71,7 +68,6 @@ def part_1(input: str) -> int:
         return
 
     walk((0, 0), -grid[(0, 0)])
-    ic(paths)
     return min(bob)
 
 
