@@ -1,3 +1,7 @@
+# Standard Library
+import sys
+from functools import lru_cache
+
 # First Party
 from utils import read_input
 
@@ -6,6 +10,8 @@ from icecream import ic
 
 Position = tuple[int, int]
 Grid = dict[Position, int]
+
+sys.setrecursionlimit(15000)
 
 
 def parse_input(input: str) -> Grid:
@@ -17,9 +23,9 @@ def parse_input(input: str) -> Grid:
     return grid
 
 
-def neighbors(position: Position) -> list[Position]:
+def get_neighbors(position: Position) -> list[Position]:
     x, y = position
-    return [(x + dx, y + dy) for dx in [-1, 0, 1] for dy in [-1, 0, 1]]
+    return [(x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1)]
 
 
 def min_max(grid: Grid) -> tuple[Position, Position]:
@@ -28,26 +34,45 @@ def min_max(grid: Grid) -> tuple[Position, Position]:
     return (max(x), max(y)), (min(x), min(y))
 
 
-def walk(grid: Grid, position: Position, target: Position, visited: list[Position] = []) -> int:
-    visited.append(position)
-    scores = [0]
-
-    if position == target:
-        return grid[position]
-
-    for neighbor in neighbors(position):
-        if neighbor in grid and neighbor not in visited:
-            scores.append(walk(grid, neighbor, target, visited.copy()))
-    return min(scores) + grid[position]
-
-
 def part_1(input: str) -> int:
     grid = parse_input(input)
-    (x, y), _ = min_max(grid)
-    ic(grid)
-    ic(min_max(grid))
+    target, _ = min_max(grid)
+    visited = []
+    path = []
+    paths = []
+    bob = [sum(grid.values())]
 
-    return walk(grid, (0, 0), (x, y))
+    @lru_cache(maxsize=None)
+    def walk(position: Position, score: int) -> None | int:
+        current_score = score + grid[position]
+        if current_score > min(bob):
+            return
+
+        if position == target:
+            bob.append(current_score)
+            paths.append(",".join(map(str, path)))
+            return
+
+        visited.append(position)
+        path.append(grid[position])
+
+        neighbors = []
+        for neighbor in get_neighbors(position):
+            if neighbor in grid and neighbor not in visited:
+                neighbors.append(neighbor)
+
+        sorted_n = sorted(neighbors, key=lambda n: grid[n])
+        for neighbor in sorted_n:
+            walk(neighbor, current_score)
+
+        visited.remove(position)
+        path.remove(grid[position])
+
+        return
+
+    walk((0, 0), -grid[(0, 0)])
+    ic(paths)
+    return min(bob)
 
 
 def part_2(input: str) -> int:
@@ -83,6 +108,10 @@ def test_part_1():
 # def test_part_1_real():
 #     input = read_input(__file__)
 #     assert part_1(input) is not None
+
+# def test_part_1_real_fail1():
+#    input = read_input(__file__)
+#    assert part_1(input) < 610
 
 
 # def test_part_2_real():
