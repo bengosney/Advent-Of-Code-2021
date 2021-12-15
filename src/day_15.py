@@ -1,16 +1,13 @@
 # Standard Library
-import sys
+# Standard Library
+from collections import defaultdict
+from heapq import heappop, heappush
 
 # First Party
 from utils import read_input
 
-# Third Party
-import networkx as nx
-
 Position = tuple[int, int]
 Grid = dict[Position, int]
-
-sys.setrecursionlimit(15000)
 
 
 def parse_input(input: str) -> Grid:
@@ -33,16 +30,39 @@ def min_max(grid: Grid) -> tuple[Position, Position]:
     return (max(x), max(y)), (min(x), min(y))
 
 
-def solve(grid: Grid) -> int:
-    (tx, ty), _ = min_max(grid)
-    cave = nx.grid_2d_graph(tx, ty, create_using=nx.DiGraph)
-    for y in range(ty + 1):
-        for x in range(tx + 1):
-            for n in get_neighbors((x, y)):
-                if n in grid:
-                    cave.add_edge(n, (x, y), weight=grid[n])
+def dijkstra(graph, start: Position, target: Position) -> int:
+    queue = [(0, start)]
+    seen = set()
+    mins = {start: 0}
+    while queue:
+        (cost, current) = heappop(queue)
+        if current not in seen:
+            seen.add(current)
+            if current == target:
+                return cost
 
-    return sum(grid[p] for p in nx.dijkstra_path(cave, (0, 0), (tx, ty))) - grid[(0, 0)]
+            for to, value in graph.get(current, ()):
+                if to in seen:
+                    continue
+                prev = mins.get(to)
+                next = cost + value
+                if prev is None or next < prev:
+                    mins[to] = next
+                    heappush(queue, (next, to))
+
+    return int("inf")
+
+
+def solve(grid: Grid) -> int:
+    graph = defaultdict(list)
+    for position in grid.keys():
+        for neighbor in get_neighbors(position):
+            if neighbor in grid:
+                graph[position].append((neighbor, grid[neighbor]))
+
+    target, _ = min_max(grid)
+
+    return dijkstra(graph, (0, 0), target)
 
 
 def part_1(input: str) -> int:
