@@ -42,7 +42,7 @@ def solve(grid: Grid) -> int:
                 if n in grid:
                     cave.add_edge(n, (x, y), weight=grid[n])
 
-    return nx.dijkstra_path_length(cave, (0, 0), (tx, ty))
+    return sum(grid[p] for p in nx.dijkstra_path(cave, (0, 0), (tx, ty))) - grid[(0, 0)]
 
 
 def part_1(input: str) -> int:
@@ -101,14 +101,9 @@ def test_part_1_real():
     assert part_1(input) is not None
 
 
-def test_part_1_real_fail1():
+def test_part_2_real():
     input = read_input(__file__)
-    assert part_1(input) < 610
-
-
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+    assert part_2(input) == 2907
 
 
 # -- Main
