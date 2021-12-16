@@ -1,6 +1,7 @@
 # Standard Library
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import chain
+from typing import Iterable
 
 # First Party
 from utils import read_input
@@ -14,6 +15,22 @@ class Packet:
     version: int
     type: int
     value: int | None = None
+    packets: list["Packet"] = field(default_factory=list)
+
+    def __len__(self):
+        return 1 + sum(len(s) for s in self.packets)
+
+    def __eq__(self, __o: object) -> bool:
+        for prop in ["version", "type", "value"]:
+            if self.__getattribute__(prop) != __o.__getattribute__(prop):
+                return False
+        return True
+
+    def flatten(self) -> Iterable["Packet"]:
+        return chain([self], *[sub.flatten() for sub in self.packets])
+
+    def __getitem__(self, item):
+        return list(self.flatten())[item]
 
 
 @dataclass
@@ -25,7 +42,7 @@ class Operator(Packet):
     pass
 
 
-def decode_packet(to_decode: str) -> tuple[list[Packet], str]:
+def decode_packet(to_decode: str) -> tuple[Packet, str]:
     version = int(to_decode[0:3], 2)
     type_ = int(to_decode[3:6], 2)
     data = to_decode[6:]
@@ -41,40 +58,45 @@ def decode_packet(to_decode: str) -> tuple[list[Packet], str]:
                 break
 
         value = int("".join(parts), 2)
-        return [Litral(version, type_, value)], data
+        return Litral(version, type_, value), data
 
     type_length = 15 if data[0] == "0" else 11
     length = int(data[1 : type_length + 1], 2)
 
     if type_length == 15:
         sub_packet_data = data[type_length + 1 : type_length + 1 + length]
-        sub_packets: list[Packet] = [Operator(version, type_)]
+        sub_packets: list[Packet] = []
         while len(sub_packet_data):
             sub_packet, sub_packet_data = decode_packet(sub_packet_data)
-            sub_packets = list(chain(sub_packets, sub_packet))
-        return sub_packets, data[type_length + 1 + length :]
+            sub_packets.append(sub_packet)
+        return Operator(version, type_, packets=sub_packets), data[type_length + 1 + length :]
     else:
-        sub_packets: list[Packet] = [Operator(version, type_)]
+        sub_packets: list[Packet] = []
         sub_packet_data = data[type_length + 1 :]
         for _ in range(length):
             sub_packet, sub_packet_data = decode_packet(sub_packet_data)
-            sub_packets = list(chain(sub_packets, sub_packet))
-        return sub_packets, sub_packet_data
+            sub_packets.append(sub_packet)
+        return Operator(version, type_, packets=sub_packets), sub_packet_data
 
 
 def hex_to_bin(input: str) -> str:
     return (bin(int(input, 16))[2:]).zfill(len(input) * 4)
 
 
+def count_version(packet: Packet) -> int:
+    ver = packet.version
+    for sub_packet in packet.packets:
+        ver += count_version(sub_packet)
+
+    return ver
+
+
 def part_1(input: str) -> int:
     bin_packet = hex_to_bin(input)
     ic(bin_packet)
-    packets, _ = decode_packet(bin_packet)
-    ver_count = 0
-    for packet in packets:
-        ver_count += packet.version
+    packet, _ = decode_packet(bin_packet)
 
-    return ver_count
+    return count_version(packet)
 
 
 def part_2(input: str) -> int:
@@ -100,32 +122,32 @@ def test_part_1():
 
 
 def test_packet_litral():
-    packets, _ = decode_packet(hex_to_bin("D2FE28"))
-    assert len(packets) == 1
-    assert packets[0] == Litral(6, 4, 2021)
+    packet, _ = decode_packet(hex_to_bin("D2FE28"))
+    assert len(packet) == 1
+    assert packet == Litral(6, 4, 2021)
 
 
 def test_packet_15bit_op():
-    packets, _ = decode_packet(hex_to_bin("38006F45291200"))
+    packet, _ = decode_packet(hex_to_bin("38006F45291200"))
 
-    assert len(packets) == 3
+    assert len(packet) == 3
 
-    assert packets[0] == Operator(1, 6)
+    assert packet == Operator(1, 6)
 
-    assert packets[1] == Litral(6, 4, 10)
-    assert packets[2] == Litral(2, 4, 20)
+    assert packet[1] == Litral(6, 4, 10)
+    assert packet[2] == Litral(2, 4, 20)
 
 
 def test_packet_11bit_op():
-    packets, _ = decode_packet(hex_to_bin("EE00D40C823060"))
+    packet, _ = decode_packet(hex_to_bin("EE00D40C823060"))
 
-    assert len(packets) == 4
+    assert len(packet) == 4
 
-    assert packets[0] == Operator(7, 3)
+    assert packet == Operator(7, 3)
 
-    assert packets[1] == Litral(2, 4, 1)
-    assert packets[2] == Litral(4, 4, 2)
-    assert packets[3] == Litral(1, 4, 3)
+    assert packet[1] == Litral(2, 4, 1)
+    assert packet[2] == Litral(4, 4, 2)
+    assert packet[3] == Litral(1, 4, 3)
 
 
 # def test_part_2():
