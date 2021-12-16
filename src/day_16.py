@@ -38,9 +38,9 @@ class Packet:
             lambda: min(sub_packets),
             lambda: max(sub_packets),
             lambda: self.value or 0,
-            lambda: 1 if sub_packets[0] > sub_packets[1] else 0,
-            lambda: 1 if sub_packets[0] < sub_packets[1] else 0,
-            lambda: 1 if sub_packets[0] == sub_packets[1] else 0,
+            lambda: sub_packets[0] > sub_packets[1],
+            lambda: sub_packets[0] < sub_packets[1],
+            lambda: sub_packets[0] == sub_packets[1],
         ][self.type]()
 
 
