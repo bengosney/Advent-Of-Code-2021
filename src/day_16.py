@@ -1,13 +1,11 @@
 # Standard Library
+import math
 from dataclasses import dataclass, field
 from itertools import chain
 from typing import Iterable
 
 # First Party
 from utils import read_input
-
-# Third Party
-from icecream import ic
 
 
 @dataclass
@@ -31,6 +29,28 @@ class Packet:
 
     def __getitem__(self, item):
         return list(self.flatten())[item]
+
+    def process(self) -> int:
+        sub_packets = [sub.process() for sub in self.packets]
+        match self.type:
+            case 0:
+                return sum(sub_packets)
+            case 1:
+                return math.prod(sub_packets)
+            case 2:
+                return min(sub_packets)
+            case 3:
+                return max(sub_packets)
+            case 4:
+                return self.value or 0
+            case 5:
+                return 1 if sub_packets[0] > sub_packets[1] else 0
+            case 6:
+                return 1 if sub_packets[0] < sub_packets[1] else 0
+            case 7:
+                return 1 if sub_packets[0] == sub_packets[1] else 0
+            case _:
+                raise Exception("unknow type")
 
 
 @dataclass
@@ -93,30 +113,28 @@ def count_version(packet: Packet) -> int:
 
 def part_1(input: str) -> int:
     bin_packet = hex_to_bin(input)
-    ic(bin_packet)
     packet, _ = decode_packet(bin_packet)
 
     return count_version(packet)
 
 
 def part_2(input: str) -> int:
-    pass
+    bin_packet = hex_to_bin(input)
+    packet, _ = decode_packet(bin_packet)
+
+    return packet.process()
 
 
 # -- Tests
 
 
-def get_example_input() -> list[tuple[str, int]]:
-    return [
+def test_part_1():
+    input = [
         ("8A004A801A8002F478", 16),
         ("620080001611562C8802118E34", 12),
         ("C0015000016115A2E0802F182340", 23),
         ("A0016C880162017C3686B18A3D4780", 31),
     ]
-
-
-def test_part_1():
-    input = get_example_input()
     for hex, val in input:
         assert part_1(hex) == val
 
@@ -150,9 +168,19 @@ def test_packet_11bit_op():
     assert packet[3] == Litral(1, 4, 3)
 
 
-# def test_part_2():
-#     input = get_example_input()
-#     assert part_2(input) is not None
+def test_part_2():
+    input = [
+        ("C200B40A82", 3),
+        ("04005AC33890", 54),
+        ("880086C3E88112", 7),
+        ("CE00C43D881120", 9),
+        ("D8005AC2A8F0", 1),
+        ("F600BC2D8F", 0),
+        ("9C005AC2F8F0", 0),
+        ("9C0141080250320F1802104A08", 1),
+    ]
+    for hex, val in input:
+        assert part_2(hex) == val
 
 
 def test_part_1_real():
@@ -160,9 +188,9 @@ def test_part_1_real():
     assert part_1(input) == 965
 
 
-# def test_part_2_real():
-#     input = read_input(__file__)
-#     assert part_2(input) is not None
+def test_part_2_real():
+    input = read_input(__file__)
+    assert part_2(input) == 116672213160
 
 
 # -- Main
