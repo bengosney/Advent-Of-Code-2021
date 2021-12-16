@@ -133,9 +133,9 @@ def test_packet_11bit_op():
 #     assert part_2(input) is not None
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) is not None
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) == 965
 
 
 # def test_part_2_real():
