@@ -32,25 +32,16 @@ class Packet:
 
     def process(self) -> int:
         sub_packets = [sub.process() for sub in self.packets]
-        match self.type:
-            case 0:
-                return sum(sub_packets)
-            case 1:
-                return math.prod(sub_packets)
-            case 2:
-                return min(sub_packets)
-            case 3:
-                return max(sub_packets)
-            case 4:
-                return self.value or 0
-            case 5:
-                return 1 if sub_packets[0] > sub_packets[1] else 0
-            case 6:
-                return 1 if sub_packets[0] < sub_packets[1] else 0
-            case 7:
-                return 1 if sub_packets[0] == sub_packets[1] else 0
-            case _:
-                raise Exception("unknow type")
+        return [
+            lambda: sum(sub_packets),
+            lambda: math.prod(sub_packets),
+            lambda: min(sub_packets),
+            lambda: max(sub_packets),
+            lambda: self.value or 0,
+            lambda: 1 if sub_packets[0] > sub_packets[1] else 0,
+            lambda: 1 if sub_packets[0] < sub_packets[1] else 0,
+            lambda: 1 if sub_packets[0] == sub_packets[1] else 0,
+        ][self.type]()
 
 
 @dataclass
@@ -83,15 +74,14 @@ def decode_packet(to_decode: str) -> tuple[Packet, str]:
     type_length = 15 if data[0] == "0" else 11
     length = int(data[1 : type_length + 1], 2)
 
+    sub_packets: list[Packet] = []
     if type_length == 15:
         sub_packet_data = data[type_length + 1 : type_length + 1 + length]
-        sub_packets: list[Packet] = []
         while len(sub_packet_data):
             sub_packet, sub_packet_data = decode_packet(sub_packet_data)
             sub_packets.append(sub_packet)
         return Operator(version, type_, packets=sub_packets), data[type_length + 1 + length :]
     else:
-        sub_packets: list[Packet] = []
         sub_packet_data = data[type_length + 1 :]
         for _ in range(length):
             sub_packet, sub_packet_data = decode_packet(sub_packet_data)
