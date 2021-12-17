@@ -4,9 +4,6 @@ import re
 # First Party
 from utils import read_input
 
-# Third Party
-from icecream import ic
-
 Position = tuple[int, int]
 Target = tuple[Position, Position]
 
@@ -17,14 +14,19 @@ def parse_input(input: str) -> Target:
     matches = re.finditer(regex, input, re.MULTILINE)
     for match in matches:
         x1, x2, y1, y2 = match.groups()
-        return (int(x1), int(y1)), (int(x2), int(y2))
+
+        return (min(int(x1), int(x2)), max(int(y1), int(y2))), (max(int(x1), int(x2)), min(int(y1), int(y2)))
 
     raise Exception("No match")
 
 
 def part_1(input: str) -> int:
     target = parse_input(input)
-    ic(target)
+    _, (_, max_y) = target
+
+    y = abs(max_y)
+
+    return int(y * ((y - 1) / 2))
 
 
 def part_2(input: str) -> int:
@@ -48,9 +50,9 @@ def test_part_1():
 #     assert part_2(input) is not None
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) is not None
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) == 9870
 
 
 # def test_part_2_real():
