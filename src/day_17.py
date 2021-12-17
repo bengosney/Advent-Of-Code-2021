@@ -6,9 +6,6 @@ from typing import Iterable
 # First Party
 from utils import read_input
 
-# Third Party
-from icecream import ic
-
 Vector = tuple[int, int]
 Position = Vector
 Target = tuple[Position, Position]
@@ -31,7 +28,7 @@ def parse_input(input: str) -> Target:
 def get_ranges(target: Target) -> tuple[Iterable[int], Iterable[int]]:
     (x1, y1), (x2, y2) = target
 
-    return range(min(x1, x2), max(x1, x2)), range(min(y1, y2), max(y1, y2))
+    return range(min(x1, x2), max(x1, x2) + 1), range(min(y1, y2), max(y1, y2) + 1)
 
 
 @lru_cache(maxsize=None)
@@ -86,7 +83,6 @@ def get_all_hits(input: str) -> Iterable[Position]:
 
     max_y = part_1(input) + 1
 
-    ic(max_x, max_y)
     for x in range(max_x + 1):
         for y in range(-max_y, max_y):
             if does_hit((x, y), target):
@@ -264,14 +260,18 @@ def get_all_test_hits():
     ]
 
 
-def test_get_all_hits():
-    all_hits = get_all_hits(get_example_input())
+def test_get_all_hits_hits():
+    all_hits = list(get_all_hits(get_example_input()))
     part_2_matches = get_all_test_hits()
-    for miss in part_2_matches:
-        if miss not in all_hits:
-            ic(miss)
-            assert False
-    assert len(part_2_matches) == len(list(all_hits))
+    for hit in part_2_matches:
+        assert hit not in all_hits
+
+
+def test_get_all_hits_misses():
+    all_hits = list(get_all_hits(get_example_input()))
+    part_2_matches = get_all_test_hits()
+    for hit in all_hits:
+        assert hit not in part_2_matches
 
 
 def test_part_1():
