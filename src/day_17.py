@@ -82,12 +82,13 @@ def part_1(input: str) -> int:
 
 def get_all_hits(input: str) -> Iterable[Position]:
     target = parse_input(input)
-    _, (max_x, _) = target
+    (min_x, min_y), (max_x, max_y) = target
 
-    max_y = part_1(input) + 1
+    part1 = part_1(input) + 1
+    start_x = int(min_x / ((min_x - 1) / 2))
 
-    for x in range(max_x + 1):
-        for y in range(-max_y, max_y):
+    for x in range(start_x, max_x + 1):
+        for y in range(-part1, part1):
             if does_hit((x, y), target):
                 yield (x, y)
 
