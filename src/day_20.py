@@ -19,10 +19,9 @@ def get_neighbours(position: Position) -> Iterable[Position]:
 
 def enhace(image: Grid, enhancement_algorithm: str) -> Grid:
     enhanced: Grid = defaultdict(lambda: ".")
-    for position in full_range(image):
-        binay = []
-        for neighbour in get_neighbours(position):
-            binay.append("1" if image[neighbour] == "#" else "0")
+    for position in full_range(image.copy()):
+        binay = ["1" if image[neighbour] == "#" else "0" for neighbour in get_neighbours(position)]
+
         dec = int("".join(binay), 2)
         enhanced[position] = enhancement_algorithm[dec]
 
@@ -30,12 +29,10 @@ def enhace(image: Grid, enhancement_algorithm: str) -> Grid:
 
 
 def minmax(image: Grid) -> tuple[tuple[int, int], tuple[int, int]]:
-    filtered_image = {k: v for k, v in image.items() if v != "."}
-
-    max_x = max(filtered_image.keys(), key=lambda x: x[0])[0]
-    max_y = max(filtered_image.keys(), key=lambda x: x[1])[1]
-    min_x = min(filtered_image.keys(), key=lambda x: x[0])[0]
-    min_y = min(filtered_image.keys(), key=lambda x: x[1])[1]
+    max_x = max(image.keys(), key=lambda a: a[0])[0]
+    max_y = max(image.keys(), key=lambda a: a[1])[1]
+    min_x = min(image.keys(), key=lambda a: a[0])[0]
+    min_y = min(image.keys(), key=lambda a: a[1])[1]
 
     return (min_x, min_y), (max_x, max_y)
 
@@ -49,17 +46,6 @@ def full_range(image: Grid) -> Iterable[tuple[int, int]]:
             yield (x, y)
 
 
-def draw(image: Grid):
-    (min_x, min_y), (max_x, max_y) = minmax(image)
-    extra = 1
-    print()
-    for y in range(min_y - extra, max_y + extra + 1):
-        for x in range(min_x - extra, max_x + extra + 1):
-            print(image[(x, y)], end="")
-        print()
-    print()
-
-
 def part_1(input: str) -> int:
     enhancement_algorithm, raw_image = input.split("\n\n")
     image: Grid = defaultdict(lambda: ".")
@@ -67,11 +53,8 @@ def part_1(input: str) -> int:
         for x, pixel in enumerate(row):
             image[(x, y)] = pixel
 
-    # draw(image.copy())
     image = enhace(image.copy(), enhancement_algorithm)
-    # draw(image.copy())
     image = enhace(image.copy(), enhancement_algorithm)
-    # draw(image.copy())
 
     counter = Counter(image.values())
     return counter["#"]
@@ -104,9 +87,9 @@ def test_part_1():
 #     assert part_2(input) is not None
 
 
-def test_part_1_real():
-    input = read_input(__file__)
-    assert part_1(input) == 5218
+# def test_part_1_real():
+#     input = read_input(__file__)
+#     assert part_1(input) == 5218
 
 
 # def test_part_2_real():
