@@ -1,23 +1,14 @@
 # Standard Library
-from collections import Counter, deque
+from collections import deque
 from dataclasses import dataclass
 from functools import lru_cache
-from itertools import combinations_with_replacement, product
-from typing import Iterable
+from itertools import product
 
 # First Party
 from utils import read_input
 
-# Third Party
-from icecream import ic
-
 
 class Dice:
-    def roll(self) -> int:
-        raise NotImplementedError
-
-
-class DeterministicDice(Dice):
     def __init__(self, size: int = 100):
         self.values = deque(range(1, size + 1))
         self.rolls = 0
@@ -26,15 +17,6 @@ class DeterministicDice(Dice):
         self.values.rotate(-1)
         self.rolls += 1
         return self.values[-1]
-
-
-class DiracDice(Dice):
-    def __init__(self, size: int = 3):
-        self.size = size
-
-    @lru_cache(maxsize=None)
-    def roll(self) -> Iterable[int]:
-        return range(self.size, (self.size * self.size) + 1)
 
 
 class Player:
@@ -58,10 +40,6 @@ class Player:
         self.position.rotate(by)
         self.score += self.position[0]
 
-    def unmove(self, by: int):
-        self.score -= self.position[0]
-        self.position.rotate(-by)
-
 
 @dataclass(frozen=True)
 class State:
@@ -70,8 +48,8 @@ class State:
 
 
 @lru_cache(maxsize=None)
-def get_rolls(size: int = 3):
-    return [sum(roll) for roll in list(combinations_with_replacement(range(1, size + 1), 3))]
+def get_rolls():
+    return [sum(roll) for roll in list(product(range(1, 4), repeat=3))]
 
 
 @lru_cache(maxsize=None)
@@ -101,19 +79,13 @@ def play(player: int, state: State) -> tuple[int, int]:
     return socres[0], socres[1]
 
 
-FREQS = Counter(a + b + c for a, b, c in product([1, 2, 3], repeat=3))
-
-
 def part_2(input: str) -> int:
     lines = input.splitlines()
     p1 = int(lines[0][-1])
     p2 = int(lines[1][-1])
 
-    ic(FREQS)
-
     scores = play(0, State((p1, p2), (0, 0)))
 
-    ic(scores)
     return max(scores)
 
 
@@ -123,7 +95,7 @@ def part_1(input: str) -> int:
     player2 = Player("2", int(lines[1][-1]), 1000)
 
     players = deque([player1, player2])
-    dice = DeterministicDice()
+    dice = Dice()
 
     while True:
         player = players[0]
@@ -140,7 +112,7 @@ def part_1(input: str) -> int:
 
 
 def test_deterministic_dice_rolls():
-    dice = DeterministicDice(6)
+    dice = Dice(6)
     for _ in range(3):
         for i in range(1, 7):
             assert dice.roll() == i
