@@ -1,8 +1,15 @@
 # Standard Library
-from collections import deque
+from collections import Counter, deque
+from dataclasses import dataclass
+from functools import lru_cache
+from itertools import combinations_with_replacement, product
+from typing import Iterable
 
 # First Party
 from utils import read_input
+
+# Third Party
+from icecream import ic
 
 
 class Dice:
@@ -21,28 +28,99 @@ class DeterministicDice(Dice):
         return self.values[-1]
 
 
+class DiracDice(Dice):
+    def __init__(self, size: int = 3):
+        self.size = size
+
+    @lru_cache(maxsize=None)
+    def roll(self) -> Iterable[int]:
+        return range(self.size, (self.size * self.size) + 1)
+
+
 class Player:
-    def __init__(self, name: str, start_position: int, board_size: int = 10):
+    def __init__(self, name: str, start_position: int, winning_score: int, board_size: int = 10):
         self.name = name
         self.position = deque(range(1, board_size + 1))
         self.position.rotate(-(start_position - 1))
         self.score = 0
+        self.winning_score = winning_score
 
     def __repr__(self):
-        return f"Player {self.name} at {self.position[0]} with score {self.score} and {self.moves} moves"
+        return f"Player {self.name} at {self.position[0]} with score {self.score}"
 
     def has_won(self):
-        return self.score >= 1000
+        return self.score >= self.winning_score
 
-    def move(self, dice: Dice):
-        self.position.rotate(-sum(dice.roll() for _ in range(3)))
+    def roll(self, dice: Dice):
+        self.move(-sum(dice.roll() for _ in range(3)))
+
+    def move(self, by: int):
+        self.position.rotate(by)
         self.score += self.position[0]
+
+    def unmove(self, by: int):
+        self.score -= self.position[0]
+        self.position.rotate(-by)
+
+
+@dataclass(frozen=True)
+class State:
+    positions: tuple[int, int]
+    scores: tuple[int, int]
+
+
+@lru_cache(maxsize=None)
+def get_rolls(size: int = 3):
+    return [sum(roll) for roll in list(combinations_with_replacement(range(1, size + 1), 3))]
+
+
+@lru_cache(maxsize=None)
+def move(by: int, player: int, state: State) -> State:
+    positions = list(state.positions)
+    scores = list(state.scores)
+    positions[player] = ((positions[player] + by - 1) % 10) + 1
+    scores[player] += positions[player]
+
+    return State((positions[0], positions[1]), (scores[0], scores[1]))
+
+
+@lru_cache(maxsize=None)
+def play(player: int, state: State) -> tuple[int, int]:
+    if state.scores[0] >= 21:
+        return (1, 0)
+    if state.scores[1] >= 21:
+        return (0, 1)
+
+    socres = [0, 0]
+    for roll in get_rolls():
+        moved = move(roll, player, state)
+        results = play(1 if player == 0 else 0, moved)
+        socres[0] += results[0]
+        socres[1] += results[1]
+
+    return socres[0], socres[1]
+
+
+FREQS = Counter(a + b + c for a, b, c in product([1, 2, 3], repeat=3))
+
+
+def part_2(input: str) -> int:
+    lines = input.splitlines()
+    p1 = int(lines[0][-1])
+    p2 = int(lines[1][-1])
+
+    ic(FREQS)
+
+    scores = play(0, State((p1, p2), (0, 0)))
+
+    ic(scores)
+    return max(scores)
 
 
 def part_1(input: str) -> int:
     lines = input.splitlines()
-    player1 = Player("1", int(lines[0][-1]))
-    player2 = Player("2", int(lines[1][-1]))
+    player1 = Player("1", int(lines[0][-1]), 1000)
+    player2 = Player("2", int(lines[1][-1]), 1000)
 
     players = deque([player1, player2])
     dice = DeterministicDice()
@@ -51,15 +129,11 @@ def part_1(input: str) -> int:
         player = players[0]
         players.rotate(1)
 
-        player.move(dice)
+        player.roll(dice)
         if player.has_won():
             break
 
     return players[0].score * dice.rolls
-
-
-def part_2(input: str) -> int:
-    pass
 
 
 # -- Tests
@@ -82,14 +156,14 @@ def test_part_1():
     assert part_1(input) == 739785
 
 
-# def test_part_2():
-#     input = get_example_input()
-#     assert part_2(input) is not None
+def test_part_2():
+    input = get_example_input()
+    assert part_2(input) == 444356092776315
 
 
-# def test_part_1_real():
-#     input = read_input(__file__)
-#     assert part_1(input) is not None
+def test_part_1_real():
+    input = read_input(__file__)
+    assert part_1(input) == 916083
 
 
 # def test_part_2_real():
